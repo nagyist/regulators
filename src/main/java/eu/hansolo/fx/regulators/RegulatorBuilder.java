@@ -25,6 +25,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.event.EventHandler;
 import javafx.geometry.Dimension2D;
 import javafx.geometry.Insets;
 import javafx.scene.paint.Color;
@@ -58,8 +59,8 @@ public class RegulatorBuilder<B extends RegulatorBuilder<B>> {
         return (B)this;
     }
 
-    public final B value(final double VALUE) {
-        properties.put("value", new SimpleDoubleProperty(VALUE));
+    public final B targetValue(final double VALUE) {
+        properties.put("targetValue", new SimpleDoubleProperty(VALUE));
         return (B)this;
     }
 
@@ -82,6 +83,11 @@ public class RegulatorBuilder<B extends RegulatorBuilder<B>> {
         properties.put("symbolScaleX", new SimpleDoubleProperty(SCALE_X));
         properties.put("symbolScaleY", new SimpleDoubleProperty(SCALE_Y));
         properties.put("symbolPath", new SimpleStringProperty(PATH));
+        return (B)this;
+    }
+
+    public final B onTargetSet(final EventHandler<RegulatorEvent> HANDLER) {
+        properties.put("onTargetSet", new SimpleObjectProperty<>(HANDLER));
         return (B)this;
     }
 
@@ -195,8 +201,8 @@ public class RegulatorBuilder<B extends RegulatorBuilder<B>> {
                 CONTROL.setTranslateY(((DoubleProperty) properties.get(key)).get());
             } else if ("padding".equals(key)) {
                 CONTROL.setPadding(((ObjectProperty<Insets>) properties.get(key)).get());
-            } else if ("value".equals(key)) {
-                CONTROL.setValue(((DoubleProperty) properties.get(key)).get());
+            } else if ("targetValue".equals(key)) {
+                CONTROL.setTargetValue(((DoubleProperty) properties.get(key)).get());
             } else if ("minValue".equals(key)) {
                 CONTROL.setMinValue(((DoubleProperty) properties.get(key)).get());
             } else if ("maxValue".equals(key)) {
@@ -211,6 +217,8 @@ public class RegulatorBuilder<B extends RegulatorBuilder<B>> {
                 CONTROL.setSymbolPath(((DoubleProperty) properties.get("symbolScaleX")).get(),
                                       ((DoubleProperty) properties.get("symbolScaleY")).get(),
                                       ((StringProperty) properties.get(key)).get());
+            } else if ("onTargetSet".equals(key)) {
+                CONTROL.setOnTargetSet(((ObjectProperty<EventHandler>) properties.get(key)).get());
             }
         }
         return CONTROL;

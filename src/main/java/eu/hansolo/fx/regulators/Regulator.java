@@ -17,6 +17,7 @@
 package eu.hansolo.fx.regulators;
 
 import javafx.beans.property.*;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.VPos;
@@ -46,39 +47,40 @@ import java.util.Locale;
 
 
 public class Regulator extends Region {
-    private static final double   PREFERRED_WIDTH  = 250;
-    private static final double   PREFERRED_HEIGHT = 250;
-    private static final double   MINIMUM_WIDTH    = 50;
-    private static final double   MINIMUM_HEIGHT   = 50;
-    private static final double   MAXIMUM_WIDTH    = 1024;
-    private static final double   MAXIMUM_HEIGHT   = 1024;
-    private double                BAR_START_ANGLE  = -130;
-    private double                ANGLE_RANGE      = 280;
-    private double                size;
-    private Canvas                barCanvas;
-    private GraphicsContext       barCtx;
-    private Shape                 ring;
-    private Circle                mainCircle;
-    private Text                  text;
-    private Circle                indicator;
-    private Group                 shadowGroup;
-    private Region                symbol;
-    private Pane                  pane;
-    private InnerShadow           indicatorShadow;
-    private DropShadow            dropShadow;
-    private InnerShadow           highlight;
-    private InnerShadow           innerShadow;
-    private DropShadow            barGlow;
-    private Rotate                indicatorRotate;
-    private double                scaleFactor;
-    private DoubleProperty        minValue;
-    private DoubleProperty        maxValue;
-    private DoubleProperty        value;
-    private IntegerProperty       decimals;
-    private StringProperty        unit;
-    private ObjectProperty<Color> barColor;
-    private String                formatString;
-    private double                angleStep;
+    private static final double         PREFERRED_WIDTH  = 250;
+    private static final double         PREFERRED_HEIGHT = 250;
+    private static final double         MINIMUM_WIDTH    = 50;
+    private static final double         MINIMUM_HEIGHT   = 50;
+    private static final double         MAXIMUM_WIDTH    = 1024;
+    private static final double         MAXIMUM_HEIGHT   = 1024;
+    private static final double         BAR_START_ANGLE  = -130;
+    private static final double         ANGLE_RANGE      = 280;
+    private final        RegulatorEvent TARGET_SET_EVENT = new RegulatorEvent(RegulatorEvent.TARGET_SET);
+    private double                      size;
+    private Canvas                      barCanvas;
+    private GraphicsContext             barCtx;
+    private Shape                       ring;
+    private Circle                      mainCircle;
+    private Text                        text;
+    private Circle                      indicator;
+    private Group                       shadowGroup;
+    private Region                      symbol;
+    private Pane                        pane;
+    private InnerShadow                 indicatorShadow;
+    private DropShadow                  dropShadow;
+    private InnerShadow                 highlight;
+    private InnerShadow                 innerShadow;
+    private DropShadow                  barGlow;
+    private Rotate                      indicatorRotate;
+    private double                      scaleFactor;
+    private DoubleProperty              minValue;
+    private DoubleProperty              maxValue;
+    private DoubleProperty              targetValue;
+    private IntegerProperty             decimals;
+    private StringProperty              unit;
+    private ObjectProperty<Color>       barColor;
+    private String                      formatString;
+    private double                      angleStep;
 
 
     // ******************** Constructors **************************************
@@ -101,10 +103,10 @@ public class Regulator extends Region {
             @Override public Object getBean() { return Regulator.this; }
             @Override public String getName() { return "maxValue"; }
         };
-        value        = new DoublePropertyBase(0) {
+        targetValue = new DoublePropertyBase(0) {
             @Override public void set(final double VALUE) { super.set(clamp(minValue.get(), maxValue.get(), VALUE)); }
             @Override public Object getBean() { return Regulator.this; }
-            @Override public String getName() { return "value"; }
+            @Override public String getName() { return "targetValue"; }
         };
         decimals     = new IntegerPropertyBase(0) {
             @Override public void set(final int VALUE) {
@@ -182,7 +184,7 @@ public class Regulator extends Region {
         mainCircle = new Circle();
         mainCircle.setFill(Color.rgb(14,22,33));
 
-        text = new Text(String.format(Locale.US, formatString, getValue()));
+        text = new Text(String.format(Locale.US, formatString, getTargetValue()));
         text.setFill(Color.WHITE);
         text.setTextOrigin(VPos.CENTER);
 
@@ -211,9 +213,10 @@ public class Regulator extends Region {
         widthProperty().addListener(o -> resize());
         heightProperty().addListener(o -> resize());
         disabledProperty().addListener(o -> setOpacity(isDisabled() ? 0.4 : 1.0));
-        valueProperty().addListener(o -> rotate(value.get()));
+        targetValueProperty().addListener(o -> rotate(targetValue.get()));
         ring.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> touchRotate(e.getSceneX(), e.getSceneY()));
         ring.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> touchRotate(e.getSceneX(), e.getSceneY()));
+        ring.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> fireEvent(TARGET_SET_EVENT));
     }
 
 
@@ -226,9 +229,9 @@ public class Regulator extends Region {
     public void setMaxValue(final double VALUE) { maxValue.set(VALUE); }
     public DoubleProperty maxValueProperty() { return maxValue; }
 
-    public double getValue() { return value.get(); }
-    public void setValue(final double VALUE) { value.set(VALUE); }
-    public DoubleProperty valueProperty() { return value; }
+    public double getTargetValue() { return targetValue.get(); }
+    public void setTargetValue(final double VALUE) { targetValue.set(VALUE); }
+    public DoubleProperty targetValueProperty() { return targetValue; }
 
     public int getDecimals() { return decimals.get(); }
     public void setDecimals(final int VALUE) { decimals.set(VALUE); }
@@ -246,7 +249,6 @@ public class Regulator extends Region {
         if (PATH.isEmpty()) {
             symbol.setVisible(false);
         } else {
-            System.out.println("Path filled");
             symbol.setStyle(new StringBuilder().append("-fx-scale-x:").append(clamp(0d, 1d, SCALE_X)).append(";")
                                                .append("-fx-scale-y:").append(clamp(0d, 1d, SCALE_Y)).append(";")
                                                .append("-fx-shape:\"").append(PATH).append("\";")
@@ -285,7 +287,7 @@ public class Regulator extends Region {
         } else if (angle <= 320 && angle > ANGLE_RANGE) {
             angle = ANGLE_RANGE;
         }
-        setValue(angle / angleStep + minValue.get());
+        setTargetValue(angle / angleStep + minValue.get());
     }
 
 
@@ -323,7 +325,7 @@ public class Regulator extends Region {
             barCanvas.setHeight(size);
             barGlow.setRadius(size * 0.016);
             barCtx.setLineWidth(size * 0.04);
-            drawBar(barCtx, value.get());
+            drawBar(barCtx, targetValue.get());
 
             dropShadow.setRadius(size * 0.016);
             dropShadow.setOffsetY(size * 0.016);
@@ -362,6 +364,12 @@ public class Regulator extends Region {
         symbol.setBackground(new Background(new BackgroundFill(barColor.get(), CornerRadii.EMPTY, Insets.EMPTY)));
         barCtx.setStroke(barColor.get());
         barGlow.setColor(barColor.get());
-        rotate(value.get());
+        rotate(targetValue.get());
     }
+
+
+    // ******************** Event Handling ************************************
+    public void setOnTargetSet(final EventHandler<RegulatorEvent> HANDLER) { addEventHandler(RegulatorEvent.TARGET_SET, HANDLER); }
+    public void removeOnTargetSet(final EventHandler<RegulatorEvent> HANDLER) { removeEventHandler(RegulatorEvent.TARGET_SET, HANDLER); }
+
 }
