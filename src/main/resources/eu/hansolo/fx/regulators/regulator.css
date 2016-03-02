@@ -1,0 +1,22 @@
+/*
+ * Copyright (c) 2016 by Gerrit Grunwald
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.symbol {
+    -fx-scale-shape: true;
+    -fx-scale-x    : 1;
+    -fx-scale-y    : 1;
+    -fx-shape      : "M 9 14 C 9 11.2385 11.2385 9 14 9 C 16.7615 9 19 11.2385 19 14 C 19 16.7615 16.7615 19 14 19 C 11.2385 19 9 16.7615 9 14 ZM 20.5333 14 C 20.5333 10.3925 17.6075 7.4667 14 7.4667 C 10.3925 7.4667 7.4668 10.3925 7.4668 14 C 7.4668 17.6075 10.3925 20.5332 14 20.5332 C 17.6075 20.5332 20.5333 17.6075 20.5333 14 ZM 23.2422 3.4426 L 20.6027 6.0822 L 21.9224 7.402 L 24.562 4.7623 L 23.2422 3.4426 ZM 6.0831 20.6017 L 3.4435 23.2412 L 4.7633 24.561 L 7.4029 21.9215 L 6.0831 20.6017 ZM 3.4398 4.7615 L 6.0794 7.401 L 7.3993 6.0813 L 4.7597 3.4416 L 3.4398 4.7615 ZM 20.599 21.9205 L 23.2386 24.5601 L 24.5583 23.2404 L 21.9187 20.6008 L 20.599 21.9205 ZM 0 15.1667 L 3.5 15.1667 L 3.5 12.8334 L 0 12.8334 L 0 15.1667 ZM 24.5 15.1667 L 28 15.1667 L 28 12.8334 L 24.5 12.8334 L 24.5 15.1667 ZM 15.1667 28 L 15.1667 24.4999 L 12.8333 24.4999 L 12.8333 28 L 15.1667 28 ZM 15.1667 3.4999 L 15.1667 0 L 12.8333 0 L 12.8333 3.4999 L 15.1667 3.4999 Z";
+}
