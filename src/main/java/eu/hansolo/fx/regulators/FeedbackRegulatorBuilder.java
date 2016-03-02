@@ -16,7 +16,6 @@
 
 package eu.hansolo.fx.regulators;
 
-import eu.hansolo.fx.regulators.FeedbackRegulator.FeedbackEvent;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -98,12 +97,17 @@ public class FeedbackRegulatorBuilder<B extends FeedbackRegulatorBuilder<B>> {
         return (B)this;
     }
 
-    public final B onAdjusting(final EventHandler<FeedbackEvent> HANDLER) {
+    public final B onTargetSet(final EventHandler<RegulatorEvent> HANDLER) {
+        properties.put("onTargetSet", new SimpleObjectProperty<>(HANDLER));
+        return (B)this;
+    }
+
+    public final B onAdjusting(final EventHandler<RegulatorEvent> HANDLER) {
         properties.put("onAdjusting", new SimpleObjectProperty<>(HANDLER));
         return (B)this;
     }
 
-    public final B onAdjusted(final EventHandler<FeedbackEvent> HANDLER) {
+    public final B onAdjusted(final EventHandler<RegulatorEvent> HANDLER) {
         properties.put("onAdjusted", new SimpleObjectProperty<>(HANDLER));
         return (B)this;
     }
@@ -226,6 +230,8 @@ public class FeedbackRegulatorBuilder<B extends FeedbackRegulatorBuilder<B>> {
                 CONTROL.setTranslateY(((DoubleProperty) properties.get(key)).get());
             } else if ("padding".equals(key)) {
                 CONTROL.setPadding(((ObjectProperty<Insets>) properties.get(key)).get());
+            } else if ("onTargetSet".equals(key)) {
+                CONTROL.setOnTargetSet(((ObjectProperty<EventHandler>) properties.get(key)).get());
             } else if ("onAdjusting".equals(key)) {
                 CONTROL.setOnAdjusting(((ObjectProperty<EventHandler>) properties.get(key)).get());
             } else if ("onAdjusted".equals(key)) {

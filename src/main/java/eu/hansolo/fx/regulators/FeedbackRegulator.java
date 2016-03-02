@@ -24,10 +24,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ObjectPropertyBase;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.StringPropertyBase;
-import javafx.event.Event;
 import javafx.event.EventHandler;
-import javafx.event.EventTarget;
-import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.VPos;
@@ -69,45 +66,46 @@ import java.util.TreeSet;
  * Created by hansolo on 01.03.16.
  */
 public class FeedbackRegulator extends Region {
-    private static final double        PREFERRED_WIDTH  = 250;
-    private static final double        PREFERRED_HEIGHT = 250;
-    private static final double        MINIMUM_WIDTH    = 50;
-    private static final double        MINIMUM_HEIGHT   = 50;
-    private static final double        MAXIMUM_WIDTH    = 1024;
-    private static final double        MAXIMUM_HEIGHT   = 1024;
-    private              double        BAR_START_ANGLE  = -130;
-    private              double        ANGLE_RANGE      = 280;
-    private final        FeedbackEvent ADJUSTING_EVENT  = new FeedbackEvent(FeedbackEvent.ADJUSTED);
-    private final        FeedbackEvent ADJUSTED_EVENT   = new FeedbackEvent(FeedbackEvent.ADJUSTED);
-    private double                     size;
-    private Canvas                     barCanvas;
-    private GraphicsContext            barCtx;
-    private Canvas                     barOverlayCanvas;
-    private GraphicsContext            barOverlayCtx;
-    private Shape                      ring;
-    private Circle                     mainCircle;
-    private Text                       text;
-    private Text                       targetText;
-    private Circle                     indicator;
-    private Group                      shadowGroup;
-    private Region                     symbol;
-    private Pane                       pane;
-    private InnerShadow                indicatorShadow;
-    private DropShadow                 dropShadow;
-    private InnerShadow                highlight;
-    private InnerShadow                innerShadow;
-    private Rotate                     indicatorRotate;
-    private double                     scaleFactor;
-    private DoubleProperty             minValue;
-    private DoubleProperty             maxValue;
-    private DoubleProperty             targetValue;
-    private DoubleProperty             currentValue;
-    private IntegerProperty            decimals;
-    private StringProperty             unit;
-    private ObjectProperty<Color>      barColor;
-    private String                     formatString;
-    private double                     angleStep;
-    private ConicalGradient            barGradient;
+    private static final double         PREFERRED_WIDTH  = 250;
+    private static final double         PREFERRED_HEIGHT = 250;
+    private static final double         MINIMUM_WIDTH    = 50;
+    private static final double         MINIMUM_HEIGHT   = 50;
+    private static final double         MAXIMUM_WIDTH    = 1024;
+    private static final double         MAXIMUM_HEIGHT   = 1024;
+    private              double         BAR_START_ANGLE  = -130;
+    private              double         ANGLE_RANGE      = 280;
+    private final        RegulatorEvent ADJUSTING_EVENT  = new RegulatorEvent(RegulatorEvent.ADJUSTING);
+    private final        RegulatorEvent ADJUSTED_EVENT   = new RegulatorEvent(RegulatorEvent.ADJUSTED);
+    private final        RegulatorEvent TARGET_SET_EVENT = new RegulatorEvent(RegulatorEvent.TARGET_SET);
+    private double                      size;
+    private Canvas                      barCanvas;
+    private GraphicsContext             barCtx;
+    private Canvas                      barOverlayCanvas;
+    private GraphicsContext             barOverlayCtx;
+    private Shape                       ring;
+    private Circle                      mainCircle;
+    private Text                        text;
+    private Text                        targetText;
+    private Circle                      indicator;
+    private Group                       shadowGroup;
+    private Region                      symbol;
+    private Pane                        pane;
+    private InnerShadow                 indicatorShadow;
+    private DropShadow                  dropShadow;
+    private InnerShadow                 highlight;
+    private InnerShadow                 innerShadow;
+    private Rotate                      indicatorRotate;
+    private double                      scaleFactor;
+    private DoubleProperty              minValue;
+    private DoubleProperty              maxValue;
+    private DoubleProperty              targetValue;
+    private DoubleProperty              currentValue;
+    private IntegerProperty             decimals;
+    private StringProperty              unit;
+    private ObjectProperty<Color>       barColor;
+    private String                      formatString;
+    private double                      angleStep;
+    private ConicalGradient             barGradient;
 
 
     // ******************** Constructors **************************************
@@ -156,6 +154,9 @@ public class FeedbackRegulator extends Region {
                     targetText.setVisible(true);
                     barOverlayCanvas.setVisible(true);
                 }
+                setText(get());
+                drawBar(barOverlayCtx, get());
+                redraw();
             }
             @Override public Object getBean() { return FeedbackRegulator.this; }
             @Override public String getName() { return "currentValue"; }
@@ -288,6 +289,7 @@ public class FeedbackRegulator extends Region {
         currentValueProperty().addListener(o -> setText(currentValue.get()));
         ring.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> touchRotate(e.getSceneX(), e.getSceneY()));
         ring.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> touchRotate(e.getSceneX(), e.getSceneY()));
+        ring.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> fireEvent(TARGET_SET_EVENT));
     }
 
 
@@ -353,7 +355,6 @@ public class FeedbackRegulator extends Region {
         if (PATH.isEmpty()) {
             symbol.setVisible(false);
         } else {
-            System.out.println("Path filled");
             symbol.setStyle(new StringBuilder().append("-fx-scale-x:").append(clamp(0d, 1d, SCALE_X)).append(";")
                                                .append("-fx-scale-y:").append(clamp(0d, 1d, SCALE_Y)).append(";")
                                                .append("-fx-shape:\"").append(PATH).append("\";")
@@ -486,20 +487,12 @@ public class FeedbackRegulator extends Region {
 
 
     // ******************** Event Handling ************************************
-    public void setOnAdjusting(final EventHandler<FeedbackEvent> HANDLER) { addEventHandler(FeedbackEvent.ADJUSTING, HANDLER); }
-    public void removeOnAdjusting(final EventHandler<FeedbackEvent> HANDLER) { removeEventHandler(FeedbackEvent.ADJUSTING, HANDLER); }
+    public void setOnTargetSet(final EventHandler<RegulatorEvent> HANDLER) { addEventHandler(RegulatorEvent.TARGET_SET, HANDLER); }
+    public void removeOnTargetSet(final EventHandler<RegulatorEvent> HANDLER) { removeEventHandler(RegulatorEvent.TARGET_SET, HANDLER); }
 
-    public void setOnAdjusted(final EventHandler<FeedbackEvent> HANDLER) { addEventHandler(FeedbackEvent.ADJUSTED, HANDLER); }
-    public void removeOnAdjusted(final EventHandler<FeedbackEvent> HANDLER) { removeEventHandler(FeedbackEvent.ADJUSTED, HANDLER); }
+    public void setOnAdjusting(final EventHandler<RegulatorEvent> HANDLER) { addEventHandler(RegulatorEvent.ADJUSTING, HANDLER); }
+    public void removeOnAdjusting(final EventHandler<RegulatorEvent> HANDLER) { removeEventHandler(RegulatorEvent.ADJUSTING, HANDLER); }
 
-
-    // ******************** Inner Classes *************************************
-    public static class FeedbackEvent extends Event {
-        public static final EventType<FeedbackEvent> ADJUSTING = new EventType(ANY, "adjusting");
-        public static final EventType<FeedbackEvent> ADJUSTED  = new EventType(ANY, "adjusted");
-
-        // ******************** Constructors **********************************
-        public FeedbackEvent(final EventType<FeedbackEvent> TYPE) { super(TYPE); }
-        public FeedbackEvent(final Object SRC, final EventTarget TARGET, final EventType<FeedbackEvent> TYPE) { super(SRC, TARGET, TYPE); }
-    }
+    public void setOnAdjusted(final EventHandler<RegulatorEvent> HANDLER) { addEventHandler(RegulatorEvent.ADJUSTED, HANDLER); }
+    public void removeOnAdjusted(final EventHandler<RegulatorEvent> HANDLER) { removeEventHandler(RegulatorEvent.ADJUSTED, HANDLER); }
 }
