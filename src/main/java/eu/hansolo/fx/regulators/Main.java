@@ -16,6 +16,7 @@
 
 package eu.hansolo.fx.regulators;
 
+import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.layout.Background;
@@ -36,12 +37,16 @@ import javafx.scene.Scene;
 public class Main extends Application {
     private Regulator         regulator;
     private FeedbackRegulator feedbackRegulator;
+    private long              lastTimerCall;
+    private AnimationTimer    timer;
+
 
     @Override public void init() {
         regulator = RegulatorBuilder.create()
                                     .prefSize(400, 400)
                                     .barColor(Color.rgb(255, 222, 102))
                                     .unit("%")
+                                    .onTargetSet(e -> System.out.println("New target set to " + regulator.getTargetValue()))
                                     .build();
 
         feedbackRegulator = FeedbackRegulatorBuilder.create()
@@ -67,8 +72,27 @@ public class Main extends Application {
                                                                                "L 23.3333 17.6471 C 23.9782 17.6471 24.5 17.1209 24.5 16.4706 " +
                                                                                "L 24.5 14.1176 L 26.8333 14.1176 C 27.4782 14.1176 28 13.5915 " +
                                                                                "28 12.9412 L 28 7.0588 C 28 6.4085 27.4782 5.8824 26.8333 5.8824 Z")
-                                                    .onAdjusted(e -> System.out.println("Battery charge is 80%"))
+                                                    .onTargetSet(e -> System.out.println("New target set to " + feedbackRegulator.getTargetValue()))
+                                                    .onAdjusted(e -> System.out.println("Battery charge is " + feedbackRegulator.getCurrentValue() + "%"))
                                                     .build();
+
+        lastTimerCall = System.nanoTime();
+        timer = new AnimationTimer() {
+            @Override public void handle(long now) {
+                if (now > lastTimerCall + 1_000_000_000l) {
+                    double currentValue = feedbackRegulator.getCurrentValue();
+                    double targetValue  = feedbackRegulator.getTargetValue();
+                    if ((int) currentValue != (int) targetValue) {
+                        if (currentValue < targetValue) {
+                            feedbackRegulator.setCurrentValue(currentValue+1);
+                        } else if (currentValue > targetValue) {
+                            feedbackRegulator.setCurrentValue(currentValue-1);
+                        }
+                    }
+                    lastTimerCall = now;
+                }
+            }
+        };
     }
 
     @Override public void start(Stage stage) {
@@ -81,6 +105,8 @@ public class Main extends Application {
 
         stage.setScene(scene);
         stage.show();
+
+        timer.start();
     }
 
     @Override public void stop() {
