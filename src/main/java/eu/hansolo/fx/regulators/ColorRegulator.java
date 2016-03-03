@@ -279,7 +279,7 @@ public class ColorRegulator extends Region {
         double halfRange = range * 0.5;
 
         Map<Double, Color> stopMap = new HashMap<>();
-        STOPS.forEach(stop -> stopMap.put(stop.getOffset(), stop.getColor()));
+        for (Stop stop : STOPS) { stopMap.put(stop.getOffset(), stop.getColor()); }
 
         List<Stop>        sortedStops     = new ArrayList<>(STOPS.size());
         SortedSet<Double> sortedFractions = new TreeSet<>(stopMap.keySet());
