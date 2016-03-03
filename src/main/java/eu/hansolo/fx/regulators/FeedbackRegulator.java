@@ -284,9 +284,9 @@ public class FeedbackRegulator extends Region {
         disabledProperty().addListener(o -> setOpacity(isDisabled() ? 0.4 : 1.0));
         targetValueProperty().addListener(o -> rotate(targetValue.get()));
         currentValueProperty().addListener(o -> setText(currentValue.get()));
-        ring.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> touchRotate(e.getSceneX(), e.getSceneY()));
-        ring.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> touchRotate(e.getSceneX(), e.getSceneY()));
-        ring.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> fireEvent(TARGET_SET_EVENT));
+        ring.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> { if (isDisabled()) return; touchRotate(e.getSceneX(), e.getSceneY()); });
+        ring.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> { if (isDisabled()) return; touchRotate(e.getSceneX(), e.getSceneY()); });
+        ring.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> { if (isDisabled()) return; fireEvent(TARGET_SET_EVENT); } );
     }
 
 

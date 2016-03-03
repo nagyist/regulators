@@ -241,13 +241,13 @@ public class ColorRegulator extends Region {
         heightProperty().addListener(o -> resize());
         disabledProperty().addListener(o -> setOpacity(isDisabled() ? 0.4 : 1.0));
         targetValueProperty().addListener(o -> rotate(targetValue.get()));
-        ring.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> touchRotate(e.getSceneX(), e.getSceneY()));
-        ring.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> touchRotate(e.getSceneX(), e.getSceneY()));
-        ring.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> fireEvent(TARGET_SET_EVENT));
-        buttonOn.setOnMousePressed(e -> buttonOnPressed(true));
-        buttonOn.setOnMouseReleased(e -> buttonOnPressed(false));
-        buttonOff.setOnMousePressed(e -> buttonOffPressed(true));
-        buttonOff.setOnMouseReleased(e -> buttonOffPressed(false));
+        ring.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> { if (isDisabled()) return; touchRotate(e.getSceneX(), e.getSceneY()); });
+        ring.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> { if (isDisabled()) return; touchRotate(e.getSceneX(), e.getSceneY()); });
+        ring.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> { if (isDisabled()) return; fireEvent(TARGET_SET_EVENT); });
+        buttonOn.setOnMousePressed(e -> { if (isDisabled()) return; buttonOnPressed(true); });
+        buttonOn.setOnMouseReleased(e -> { if (isDisabled()) return; buttonOnPressed(false); });
+        buttonOff.setOnMousePressed(e -> { if (isDisabled()) return; buttonOffPressed(true); });
+        buttonOff.setOnMouseReleased(e -> { if (isDisabled()) return; buttonOffPressed(false); });
     }
 
 
