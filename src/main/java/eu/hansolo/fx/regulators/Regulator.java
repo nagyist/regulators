@@ -78,6 +78,7 @@ public class Regulator extends Region {
     private DoubleProperty              targetValue;
     private IntegerProperty             decimals;
     private StringProperty              unit;
+    private ObjectProperty<Color>       symbolColor;
     private ObjectProperty<Color>       barColor;
     private String                      formatString;
     private double                      angleStep;
@@ -125,6 +126,11 @@ public class Regulator extends Region {
             }
             @Override public Object getBean() { return Regulator.this; }
             @Override public String getName() { return "unit"; }
+        };
+        symbolColor  = new ObjectPropertyBase<Color>(Color.WHITE) {
+            @Override public void set(final Color COLOR) { super.set(null == COLOR ? Color.WHITE : COLOR); }
+            @Override public Object getBean() { return Regulator.this; }
+            @Override public String getName() { return "symbolColor"; }
         };
         barColor     = new ObjectPropertyBase<Color>(Color.CYAN) {
             @Override public void set(final Color COLOR) {
@@ -240,6 +246,10 @@ public class Regulator extends Region {
     public String getUnit()  { return unit.get(); }
     public void setUnit(final String UNIT) { unit.set(UNIT); }
     public StringProperty unitProperty() { return unit; }
+
+    public Color getSymbolColor() { return symbolColor.get(); }
+    public void setSymbolColor(final Color COLOR) { symbolColor.set(COLOR); }
+    public ObjectProperty<Color> symbolColorProperty() { return symbolColor; }
 
     public Color getBarColor() { return barColor.get(); }
     public void setBarColor(final Color COLOR) { barColor.set(COLOR); }
@@ -361,7 +371,7 @@ public class Regulator extends Region {
     }
 
     private void redraw() {
-        symbol.setBackground(new Background(new BackgroundFill(barColor.get(), CornerRadii.EMPTY, Insets.EMPTY)));
+        symbol.setBackground(new Background(new BackgroundFill(symbolColor.get(), CornerRadii.EMPTY, Insets.EMPTY)));
         barCtx.setStroke(barColor.get());
         barGlow.setColor(barColor.get());
         rotate(targetValue.get());

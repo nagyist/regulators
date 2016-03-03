@@ -28,6 +28,7 @@ import javafx.beans.property.StringProperty;
 import javafx.event.EventHandler;
 import javafx.geometry.Dimension2D;
 import javafx.geometry.Insets;
+import javafx.scene.paint.Color;
 import javafx.scene.paint.Stop;
 
 import java.util.HashMap;
@@ -72,6 +73,11 @@ public class FeedbackRegulatorBuilder<B extends FeedbackRegulatorBuilder<B>> {
 
     public final B unit(final String TEXT) {
         properties.put("unit", new SimpleStringProperty(TEXT));
+        return (B)this;
+    }
+
+    public final B symbolColor(final Color COLOR) {
+        properties.put("symbolColor", new SimpleObjectProperty<>(COLOR));
         return (B)this;
     }
 
@@ -190,7 +196,7 @@ public class FeedbackRegulatorBuilder<B extends FeedbackRegulatorBuilder<B>> {
         if (properties.keySet().contains("gradientStopsArray")) {
             CONTROL.setGradientStops(((ObjectProperty<Stop[]>) properties.get("gradientStopsArray")).get());
         }
-        if(properties.keySet().contains("sectionsList")) {
+        if(properties.keySet().contains("gradientStopsList")) {
             CONTROL.setGradientStops(((ObjectProperty<List<Stop>>) properties.get("gradientStopsList")).get());
         }
 
@@ -246,6 +252,8 @@ public class FeedbackRegulatorBuilder<B extends FeedbackRegulatorBuilder<B>> {
                 CONTROL.setMaxValue(((DoubleProperty) properties.get(key)).get());
             } else if ("unit".equals(key)) {
                 CONTROL.setUnit(((StringProperty) properties.get(key)).get());
+            } else if ("symbolColor".equals(key)) {
+                CONTROL.setSymbolColor(((ObjectProperty<Color>) properties.get(key)).get());
             } else if ("decimals".equals(key)) {
                 CONTROL.setDecimals(((IntegerProperty) properties.get(key)).get());
             } else if ("symbolPath".equals(key)) {

@@ -18,7 +18,10 @@ package eu.hansolo.fx.regulators;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.scene.control.Button;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -37,6 +40,7 @@ import javafx.scene.Scene;
 public class Main extends Application {
     private Regulator         regulator;
     private FeedbackRegulator feedbackRegulator;
+    private ColorRegulator    colorRegulator;
     private long              lastTimerCall;
     private AnimationTimer    timer;
 
@@ -76,6 +80,12 @@ public class Main extends Application {
                                                     .onAdjusted(e -> System.out.println("Battery charge is " + feedbackRegulator.getCurrentValue() + "%"))
                                                     .build();
 
+        colorRegulator = ColorRegulatorBuilder.create()
+                                              .prefSize(400, 400)
+                                              .onButtonOnPressed(e -> System.out.println("Light ON"))
+                                              .onButtonOffPressed(e -> System.out.println("Light OFF"))
+                                              .build();
+
         lastTimerCall = System.nanoTime();
         timer = new AnimationTimer() {
             @Override public void handle(long now) {
@@ -96,7 +106,7 @@ public class Main extends Application {
     }
 
     @Override public void start(Stage stage) {
-        HBox pane = new HBox(regulator, feedbackRegulator);
+        HBox pane = new HBox(regulator, feedbackRegulator, colorRegulator);
         pane.setSpacing(20);
         pane.setPadding(new Insets(10));
         pane.setBackground(new Background(new BackgroundFill(Color.rgb(66,71,79), CornerRadii.EMPTY, Insets.EMPTY)));
