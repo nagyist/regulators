@@ -63,14 +63,11 @@ public class Regulator extends Region {
     private Circle                      mainCircle;
     private Text                        text;
     private Circle                      indicator;
-    private Group                       shadowGroup;
     private Region                      symbol;
     private Pane                        pane;
-    private InnerShadow                 indicatorShadow;
     private DropShadow                  dropShadow;
     private InnerShadow                 highlight;
     private InnerShadow                 innerShadow;
-    private DropShadow                  barGlow;
     private Rotate                      indicatorRotate;
     private double                      scaleFactor;
     private DoubleProperty              minValue;
@@ -173,9 +170,6 @@ public class Regulator extends Region {
         highlight.setInput(innerShadow);
         dropShadow.setInput(highlight);
 
-        indicatorShadow = new InnerShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.75), PREFERRED_WIDTH * 0.008, 0.0, 0, PREFERRED_WIDTH * 0.004);
-
-        barGlow   = new DropShadow(BlurType.TWO_PASS_BOX, barColor.get(), PREFERRED_WIDTH * 0.004, 0, 0, 0);
         barCanvas = new Canvas(PREFERRED_WIDTH, PREFERRED_HEIGHT);
         barCtx    = barCanvas.getGraphicsContext2D();
         barCtx.setLineCap(StrokeLineCap.ROUND);
@@ -198,16 +192,14 @@ public class Regulator extends Region {
 
         indicator = new Circle();
         indicator.setFill(Color.rgb(36, 44, 53));
+        indicator.setStroke(Color.rgb(26, 34, 43));
         indicator.setMouseTransparent(true);
         indicator.getTransforms().add(indicatorRotate);
-
-        shadowGroup = new Group(indicator);
-        shadowGroup.setEffect(indicatorShadow);
 
         symbol = new Region();
         symbol.getStyleClass().setAll("symbol");
 
-        pane = new Pane(barCanvas, ring, mainCircle, text, shadowGroup, symbol);
+        pane = new Pane(barCanvas, ring, mainCircle, text, indicator, symbol);
         pane.setPrefSize(PREFERRED_HEIGHT, PREFERRED_HEIGHT);
         pane.setBackground(new Background(new BackgroundFill(Color.rgb(36,44,53), new CornerRadii(1024), Insets.EMPTY)));
         pane.setEffect(highlight);
@@ -316,7 +308,6 @@ public class Regulator extends Region {
         double barWH          = size * 0.92;
         double barAngleExtend = (VALUE - minValue.get()) * angleStep;
         CTX.save();
-        CTX.setEffect(barGlow);
         CTX.strokeArc(barXY, barXY, barWH, barWH, BAR_START_ANGLE, -barAngleExtend, ArcType.OPEN);
         CTX.restore();
     }
@@ -333,7 +324,6 @@ public class Regulator extends Region {
 
             barCanvas.setWidth(size);
             barCanvas.setHeight(size);
-            barGlow.setRadius(size * 0.016);
             barCtx.setLineWidth(size * 0.04);
             drawBar(barCtx, targetValue.get());
 
@@ -343,8 +333,6 @@ public class Regulator extends Region {
             highlight.setOffsetY(clamp(1d, 2d, size * 0.004));
             innerShadow.setRadius(clamp(1d, 2d, size * 0.004));
             innerShadow.setOffsetY(clamp(-1d, -2d, -size * 0.004));
-            indicatorShadow.setRadius(size * 0.036);
-            indicatorShadow.setOffsetY(size * 0.006);
 
             double center = size * 0.5;
             scaleFactor = size / PREFERRED_WIDTH;
@@ -373,7 +361,6 @@ public class Regulator extends Region {
     private void redraw() {
         symbol.setBackground(new Background(new BackgroundFill(symbolColor.get(), CornerRadii.EMPTY, Insets.EMPTY)));
         barCtx.setStroke(barColor.get());
-        barGlow.setColor(barColor.get());
         rotate(targetValue.get());
     }
 

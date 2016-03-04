@@ -87,10 +87,8 @@ public class FeedbackRegulator extends Region {
     private Text                        text;
     private Text                        targetText;
     private Circle                      indicator;
-    private Group                       shadowGroup;
     private Region                      symbol;
     private Pane                        pane;
-    private InnerShadow                 indicatorShadow;
     private DropShadow                  dropShadow;
     private InnerShadow                 highlight;
     private InnerShadow                 innerShadow;
@@ -217,8 +215,6 @@ public class FeedbackRegulator extends Region {
         highlight.setInput(innerShadow);
         dropShadow.setInput(highlight);
 
-        indicatorShadow = new InnerShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.75), PREFERRED_WIDTH * 0.008, 0.0, 0, PREFERRED_WIDTH * 0.004);
-
         Stop[] stops = {
             new Stop(0.0, Color.rgb(135, 255, 190)),
             new Stop(0.125, Color.rgb(254, 190, 106)),
@@ -261,16 +257,14 @@ public class FeedbackRegulator extends Region {
 
         indicator = new Circle();
         indicator.setFill(Color.rgb(36, 44, 53));
+        indicator.setStroke(Color.rgb(26, 34, 43));
         indicator.setMouseTransparent(true);
         indicator.getTransforms().add(indicatorRotate);
-
-        shadowGroup = new Group(indicator);
-        shadowGroup.setEffect(indicatorShadow);
 
         symbol = new Region();
         symbol.getStyleClass().setAll("symbol");
 
-        pane = new Pane(barCanvas, barOverlayCanvas, ring, mainCircle, text, targetText, shadowGroup, symbol);
+        pane = new Pane(barCanvas, barOverlayCanvas, ring, mainCircle, text, targetText, indicator, symbol);
         pane.setPrefSize(PREFERRED_HEIGHT, PREFERRED_HEIGHT);
         pane.setBackground(new Background(new BackgroundFill(Color.rgb(36, 44, 53), new CornerRadii(1024), Insets.EMPTY)));
         pane.setEffect(highlight);
@@ -454,8 +448,6 @@ public class FeedbackRegulator extends Region {
             highlight.setOffsetY(clamp(1d, 2d, size * 0.004));
             innerShadow.setRadius(clamp(1d, 2d, size * 0.004));
             innerShadow.setOffsetY(clamp(-1d, -2d, -size * 0.004));
-            indicatorShadow.setRadius(size * 0.036);
-            indicatorShadow.setOffsetY(size * 0.006);
 
             double center = size * 0.5;
             scaleFactor = size / PREFERRED_WIDTH;

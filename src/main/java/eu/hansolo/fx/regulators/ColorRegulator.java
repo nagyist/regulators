@@ -85,14 +85,11 @@ public class ColorRegulator extends Region {
     private Text                        textOn;
     private Text                        textOff;
     private Circle                      indicator;
-    private Group                       shadowGroup;
     private Circle                      currentColorCircle;
     private Pane                        pane;
-    private InnerShadow                 indicatorShadow;
     private DropShadow                  dropShadow;
     private InnerShadow                 highlight;
     private InnerShadow                 innerShadow;
-    private InnerShadow                 currentColorCircleShadow;
     private Rotate                      indicatorRotate;
     private double                      scaleFactor;
     private DoubleProperty              targetValue;
@@ -152,10 +149,6 @@ public class ColorRegulator extends Region {
         highlight.setInput(innerShadow);
         dropShadow.setInput(highlight);
 
-        indicatorShadow = new InnerShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.75), PREFERRED_WIDTH * 0.008, 0.0, 0, PREFERRED_WIDTH * 0.004);
-
-        currentColorCircleShadow = new InnerShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.65), PREFERRED_WIDTH * 0.075, 0.0, 0, 0);
-
         Stop[] stops = { new Stop(0.0, Color.rgb(255,255,0)),
                          new Stop(0.125, Color.rgb(255,0,0)),
                          new Stop(0.375, Color.rgb(255,0,255)),
@@ -213,22 +206,18 @@ public class ColorRegulator extends Region {
 
         indicator = new Circle();
         indicator.setFill(Color.rgb(36, 44, 53));
+        indicator.setStroke(Color.rgb(26, 34, 43));
         indicator.setMouseTransparent(true);
         indicator.getTransforms().add(indicatorRotate);
-
-        shadowGroup = new Group(indicator);
-        shadowGroup.setEffect(indicatorShadow);
 
         innerRing = Shape.subtract(new Circle(center, center, PREFERRED_WIDTH * 0.24),
                                    new Circle(center, center, PREFERRED_WIDTH * 0.2));
         innerRing.setFill(Color.rgb(66,71,79));
-        innerRing.setEffect(dropShadow);
 
         currentColorCircle = new Circle();
         currentColorCircle.setFill(targetColor.get());
-        currentColorCircle.setEffect(currentColorCircleShadow);
 
-        pane = new Pane(barCanvas, ring, mainCircle, currentColorCircle, innerRing, shadowGroup, buttonOn, textOn, buttonOff, textOff);
+        pane = new Pane(barCanvas, ring, mainCircle, currentColorCircle, innerRing, indicator, buttonOn, textOn, buttonOff, textOff);
         pane.setPrefSize(PREFERRED_HEIGHT, PREFERRED_HEIGHT);
         pane.setBackground(new Background(new BackgroundFill(Color.rgb(36, 44, 53), new CornerRadii(1024), Insets.EMPTY)));
         pane.setEffect(highlight);
@@ -390,9 +379,6 @@ public class ColorRegulator extends Region {
             highlight.setOffsetY(clamp(1d, 2d, size * 0.004));
             innerShadow.setRadius(clamp(1d, 2d, size * 0.004));
             innerShadow.setOffsetY(clamp(-1d, -2d, -size * 0.004));
-            indicatorShadow.setRadius(size * 0.036);
-            indicatorShadow.setOffsetY(size * 0.006);
-            currentColorCircleShadow.setRadius(size * 0.075);
 
             scaleFactor = size / PREFERRED_WIDTH;
             ring.getTransforms().setAll(new Scale(scaleFactor, scaleFactor, 0, 0));
