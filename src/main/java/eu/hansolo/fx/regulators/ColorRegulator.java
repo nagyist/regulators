@@ -389,17 +389,19 @@ public class ColorRegulator extends Region {
             barCanvas.setCache(true);
             barCanvas.setCacheHint(CacheHint.SPEED);
 
+            double buttonRadius = size * 0.46;
+            double buttonWidth  = size * 0.072;
             buttonOn.setCenterX(center);
             buttonOn.setCenterY(center);
-            buttonOn.setRadiusX(size * 0.46);
-            buttonOn.setRadiusY(size * 0.46);
-            buttonOn.setStrokeWidth(size * 0.072);
+            buttonOn.setRadiusX(buttonRadius);
+            buttonOn.setRadiusY(buttonRadius);
+            buttonOn.setStrokeWidth(buttonWidth);
 
             buttonOff.setCenterX(center);
             buttonOff.setCenterY(center);
-            buttonOff.setRadiusX(size * 0.46);
-            buttonOff.setRadiusY(size * 0.46);
-            buttonOff.setStrokeWidth(size * 0.072);
+            buttonOff.setRadiusX(buttonRadius);
+            buttonOff.setRadiusY(buttonRadius);
+            buttonOff.setStrokeWidth(buttonWidth);
 
             double shadowRadius = clamp(1d, 2d, size * 0.004);
             dropShadow.setRadius(shadowRadius);
