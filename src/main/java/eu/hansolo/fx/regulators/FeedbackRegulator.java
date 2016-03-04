@@ -28,7 +28,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.VPos;
-import javafx.scene.Group;
+import javafx.scene.CacheHint;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.BlurType;
@@ -101,6 +101,8 @@ public class FeedbackRegulator extends Region {
     private IntegerProperty             decimals;
     private StringProperty              unit;
     private ObjectProperty<Color>       symbolColor;
+    private ObjectProperty<Color>       textColor;
+    private ObjectProperty<Color>       color;
     private String                      formatString;
     private double                      angleStep;
     private ConicalGradient             barGradient;
@@ -178,9 +180,28 @@ public class FeedbackRegulator extends Region {
             @Override public String getName() { return "unit"; }
         };
         symbolColor  = new ObjectPropertyBase<Color>(Color.WHITE) {
-            @Override public void set(final Color COLOR) { super.set(null == COLOR ? Color.WHITE : COLOR); }
+            @Override public void set(final Color COLOR) {
+                super.set(null == COLOR ? Color.WHITE : COLOR);
+                redraw();
+            }
             @Override public Object getBean() { return FeedbackRegulator.this; }
             @Override public String getName() { return "symbolColor"; }
+        };
+        textColor    = new ObjectPropertyBase<Color>(Color.WHITE) {
+            @Override public void set(final Color COLOR) {
+                super.set(null == COLOR ? Color.WHITE:  COLOR);
+                redraw();
+            }
+            @Override public Object getBean() { return FeedbackRegulator.this; }
+            @Override public String getName() { return "textColor"; }
+        };
+        color        = new ObjectPropertyBase<Color>(Color.rgb(66,71,79)) {
+            @Override public void set(final Color COLOR) {
+                super.set(null == COLOR ? Color.rgb(66,71,79) : COLOR);
+                redraw();
+            }
+            @Override public Object getBean() { return FeedbackRegulator.this; }
+            @Override public String getName() { return "color"; }
         };
         formatString = new StringBuilder("%.").append(Integer.toString(decimals.get())).append("f").append(unit.get()).toString();
         angleStep    = ANGLE_RANGE / (maxValue.get() - minValue.get());
@@ -238,26 +259,26 @@ public class FeedbackRegulator extends Region {
         double center = PREFERRED_WIDTH * 0.5;
         ring = Shape.subtract(new Circle(center, center, PREFERRED_WIDTH * 0.42),
                               new Circle(center, center, PREFERRED_WIDTH * 0.3));
-        ring.setFill(Color.rgb(66,71,79));
+        ring.setFill(color.get());
         ring.setEffect(dropShadow);
 
         mainCircle = new Circle();
-        mainCircle.setFill(Color.rgb(14,22,33));
+        mainCircle.setFill(color.get().darker().darker());
 
         text = new Text(String.format(Locale.US, formatString, currentValue.get()));
-        text.setFill(Color.WHITE);
+        text.setFill(textColor.get());
         text.setTextOrigin(VPos.CENTER);
 
         targetText = new Text(String.format(Locale.US, formatString, targetValue.get()));
-        targetText.setFill(Color.rgb(170, 170, 170));
+        targetText.setFill(textColor.get().darker());
         targetText.setTextOrigin(VPos.CENTER);
         targetText.setVisible((int) targetValue.get() != (int) currentValue.get());
 
         indicatorRotate = new Rotate(-ANGLE_RANGE *  0.5, center, center);
 
         indicator = new Circle();
-        indicator.setFill(Color.rgb(36, 44, 53));
-        indicator.setStroke(Color.rgb(26, 34, 43));
+        indicator.setFill(color.get().darker());
+        indicator.setStroke(color.get().darker().darker());
         indicator.setMouseTransparent(true);
         indicator.getTransforms().add(indicatorRotate);
 
@@ -266,7 +287,7 @@ public class FeedbackRegulator extends Region {
 
         pane = new Pane(barCanvas, barOverlayCanvas, ring, mainCircle, text, targetText, indicator, symbol);
         pane.setPrefSize(PREFERRED_HEIGHT, PREFERRED_HEIGHT);
-        pane.setBackground(new Background(new BackgroundFill(Color.rgb(36, 44, 53), new CornerRadii(1024), Insets.EMPTY)));
+        pane.setBackground(new Background(new BackgroundFill(color.get().darker(), new CornerRadii(1024), Insets.EMPTY)));
         pane.setEffect(highlight);
 
         getChildren().setAll(pane);
@@ -313,6 +334,14 @@ public class FeedbackRegulator extends Region {
     public void setSymbolColor(final Color COLOR) { symbolColor.set(COLOR); }
     public ObjectProperty<Color> symbolColorProperty() { return symbolColor; }
 
+    public Color getTextColor() { return textColor.get(); }
+    public void setTextColor(final Color COLOR) { textColor.set(COLOR); }
+    public ObjectProperty<Color> textColorProperty() { return textColor; }
+
+    public Color getColor() { return color.get(); }
+    public void setColor(final Color COLOR) { color.set(COLOR); }
+    public ObjectProperty<Color> colorProperty() { return color; }
+
     public List<Stop> getGradientStops() { return barGradient.getStops(); }
     public void setGradientStops(final Stop... STOPS) { setGradientStops(Arrays.asList(STOPS)); }
     public void setGradientStops(final List<Stop> STOPS) {
@@ -331,7 +360,7 @@ public class FeedbackRegulator extends Region {
         double halfRange = range * 0.5;
 
         Map<Double, Color> stopMap = new HashMap<>();
-        STOPS.forEach(stop -> stopMap.put(stop.getOffset(), stop.getColor()));
+        for (Stop stop : STOPS) { stopMap.put(stop.getOffset(), stop.getColor()); }
 
         List<Stop>        sortedStops     = new ArrayList<>(STOPS.size());
         SortedSet<Double> sortedFractions = new TreeSet<>(stopMap.keySet());
@@ -431,30 +460,40 @@ public class FeedbackRegulator extends Region {
             pane.setPrefSize(size, size);
             pane.relocate((getWidth() - size) * 0.5, (getHeight() - size) * 0.5);
 
+            barCanvas.setCache(false);
             barCanvas.setWidth(size);
             barCanvas.setHeight(size);
             barCtx.setLineWidth(size * 0.04);
             barCtx.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, size, size)));
             drawBar(barCtx, maxValue.get());
+            barCanvas.setCache(true);
+            barCanvas.setCacheHint(CacheHint.SPEED);
 
             barOverlayCanvas.setWidth(size);
             barOverlayCanvas.setHeight(size);
             barOverlayCtx.setLineWidth(size * 0.03);
             drawBar(barOverlayCtx, currentValue.get());
 
-            dropShadow.setRadius(size * 0.016);
-            dropShadow.setOffsetY(size * 0.016);
-            highlight.setRadius(clamp(1d, 2d, size * 0.004));
-            highlight.setOffsetY(clamp(1d, 2d, size * 0.004));
-            innerShadow.setRadius(clamp(1d, 2d, size * 0.004));
-            innerShadow.setOffsetY(clamp(-1d, -2d, -size * 0.004));
+            double shadowRadius = clamp(1d, 2d, size * 0.004);
+            dropShadow.setRadius(shadowRadius);
+            dropShadow.setOffsetY(shadowRadius);
+            highlight.setRadius(shadowRadius);
+            highlight.setOffsetY(shadowRadius);
+            innerShadow.setRadius(shadowRadius);
+            innerShadow.setOffsetY(-shadowRadius);
 
             double center = size * 0.5;
             scaleFactor = size / PREFERRED_WIDTH;
+            ring.setCache(false);
             ring.getTransforms().setAll(new Scale(scaleFactor, scaleFactor, 0, 0));
+            ring.setCache(true);
+            ring.setCacheHint(CacheHint.SPEED);
 
+            mainCircle.setCache(false);
             mainCircle.setRadius(size * 0.3);
             mainCircle.setCenterX(center); mainCircle.setCenterY(center);
+            mainCircle.setCache(true);
+            mainCircle.setCacheHint(CacheHint.SPEED);
 
             text.setFont(Fonts.robotoMedium(size * 0.216));
             text.relocate((size - text.getLayoutBounds().getWidth()) * 0.5, size * 0.33);
@@ -469,15 +508,25 @@ public class FeedbackRegulator extends Region {
             indicatorRotate.setPivotX(center);
             indicatorRotate.setPivotY(center);
 
+            symbol.setCache(false);
             symbol.setPrefSize(size * 0.112, size * 0.112);
             symbol.relocate((size - symbol.getPrefWidth()) * 0.5, size * 0.62);
+            symbol.setCache(true);
+            symbol.setCacheHint(CacheHint.SPEED);
 
             redraw();
         }
     }
 
     private void redraw() {
+        pane.setBackground(new Background(new BackgroundFill(color.get().darker(), new CornerRadii(1024), Insets.EMPTY)));
+        mainCircle.setFill(color.get().darker().darker());
+        ring.setFill(color.get());
+        indicator.setFill(color.get().darker());
+        indicator.setStroke(color.get().darker().darker());
         symbol.setBackground(new Background(new BackgroundFill(symbolColor.get(), CornerRadii.EMPTY, Insets.EMPTY)));
+        targetText.setFill(textColor.get().darker());
+        text.setFill(textColor.get());
         rotate(targetValue.get());
         setText(currentValue.get());
     }

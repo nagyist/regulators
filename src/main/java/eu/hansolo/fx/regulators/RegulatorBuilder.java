@@ -84,6 +84,16 @@ public class RegulatorBuilder<B extends RegulatorBuilder<B>> {
         return (B)this;
     }
 
+    public final B textColor(final Color COLOR) {
+        properties.put("textColor", new SimpleObjectProperty<>(COLOR));
+        return (B)this;
+    }
+
+    public final B color(final Color COLOR) {
+        properties.put("color", new SimpleObjectProperty<>(COLOR));
+        return (B)this;
+    }
+
     public final B symbolPath(final double SCALE_X, final double SCALE_Y, final String PATH) {
         properties.put("symbolScaleX", new SimpleDoubleProperty(SCALE_X));
         properties.put("symbolScaleY", new SimpleDoubleProperty(SCALE_Y));
@@ -216,6 +226,10 @@ public class RegulatorBuilder<B extends RegulatorBuilder<B>> {
                 CONTROL.setUnit(((StringProperty) properties.get(key)).get());
             } else if ("symbolColor".equals(key)) {
                 CONTROL.setSymbolColor(((ObjectProperty<Color>) properties.get(key)).get());
+            } else if ("textColor".equals(key)) {
+                CONTROL.setTextColor(((ObjectProperty<Color>) properties.get(key)).get());
+            } else if ("color".equals(key)) {
+                CONTROL.setColor(((ObjectProperty<Color>) properties.get(key)).get());
             } else if ("decimals".equals(key)) {
                 CONTROL.setDecimals(((IntegerProperty) properties.get(key)).get());
             } else if ("barColor".equals(key)) {

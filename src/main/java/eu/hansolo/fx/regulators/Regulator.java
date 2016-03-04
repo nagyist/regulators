@@ -21,7 +21,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.VPos;
-import javafx.scene.Group;
+import javafx.scene.CacheHint;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.BlurType;
@@ -76,7 +76,9 @@ public class Regulator extends Region {
     private IntegerProperty             decimals;
     private StringProperty              unit;
     private ObjectProperty<Color>       symbolColor;
+    private ObjectProperty<Color>       textColor;
     private ObjectProperty<Color>       barColor;
+    private ObjectProperty<Color>       color;
     private String                      formatString;
     private double                      angleStep;
 
@@ -125,9 +127,20 @@ public class Regulator extends Region {
             @Override public String getName() { return "unit"; }
         };
         symbolColor  = new ObjectPropertyBase<Color>(Color.WHITE) {
-            @Override public void set(final Color COLOR) { super.set(null == COLOR ? Color.WHITE : COLOR); }
+            @Override public void set(final Color COLOR) {
+                super.set(null == COLOR ? Color.WHITE : COLOR);
+                redraw();
+            }
             @Override public Object getBean() { return Regulator.this; }
             @Override public String getName() { return "symbolColor"; }
+        };
+        textColor    = new ObjectPropertyBase<Color>(Color.WHITE) {
+            @Override public void set(final Color COLOR) {
+                super.set(null == COLOR ? Color.WHITE:  COLOR);
+                redraw();
+            }
+            @Override public Object getBean() { return Regulator.this; }
+            @Override public String getName() { return "textColor"; }
         };
         barColor     = new ObjectPropertyBase<Color>(Color.CYAN) {
             @Override public void set(final Color COLOR) {
@@ -136,6 +149,14 @@ public class Regulator extends Region {
             }
             @Override public Object getBean() { return Regulator.this; }
             @Override public String getName() { return "barColor"; }
+        };
+        color        = new ObjectPropertyBase<Color>(Color.rgb(66,71,79)) {
+            @Override public void set(final Color COLOR) {
+                super.set(null == COLOR ? Color.rgb(66,71,79) : COLOR);
+                redraw();
+            }
+            @Override public Object getBean() { return Regulator.this; }
+            @Override public String getName() { return "color"; }
         };
         formatString = new StringBuilder("%.").append(Integer.toString(decimals.get())).append("f").append(unit.get()).toString();
         angleStep    = ANGLE_RANGE / (maxValue.get() - minValue.get());
@@ -178,11 +199,11 @@ public class Regulator extends Region {
         double center = PREFERRED_WIDTH * 0.5;
         ring = Shape.subtract(new Circle(center, center, PREFERRED_WIDTH * 0.42),
                               new Circle(center, center, PREFERRED_WIDTH * 0.3));
-        ring.setFill(Color.rgb(66,71,79));
+        ring.setFill(color.get());
         ring.setEffect(dropShadow);
 
         mainCircle = new Circle();
-        mainCircle.setFill(Color.rgb(14,22,33));
+        mainCircle.setFill(color.get().darker().darker());
 
         text = new Text(String.format(Locale.US, formatString, getTargetValue()));
         text.setFill(Color.WHITE);
@@ -191,8 +212,8 @@ public class Regulator extends Region {
         indicatorRotate = new Rotate(-ANGLE_RANGE *  0.5, center, center);
 
         indicator = new Circle();
-        indicator.setFill(Color.rgb(36, 44, 53));
-        indicator.setStroke(Color.rgb(26, 34, 43));
+        indicator.setFill(color.get().darker());
+        indicator.setStroke(color.get().darker().darker());
         indicator.setMouseTransparent(true);
         indicator.getTransforms().add(indicatorRotate);
 
@@ -201,7 +222,7 @@ public class Regulator extends Region {
 
         pane = new Pane(barCanvas, ring, mainCircle, text, indicator, symbol);
         pane.setPrefSize(PREFERRED_HEIGHT, PREFERRED_HEIGHT);
-        pane.setBackground(new Background(new BackgroundFill(Color.rgb(36,44,53), new CornerRadii(1024), Insets.EMPTY)));
+        pane.setBackground(new Background(new BackgroundFill(color.get().darker(), new CornerRadii(1024), Insets.EMPTY)));
         pane.setEffect(highlight);
 
         getChildren().setAll(pane);
@@ -243,9 +264,17 @@ public class Regulator extends Region {
     public void setSymbolColor(final Color COLOR) { symbolColor.set(COLOR); }
     public ObjectProperty<Color> symbolColorProperty() { return symbolColor; }
 
+    public Color getTextColor() { return textColor.get(); }
+    public void setTextColor(final Color COLOR) { textColor.set(COLOR); }
+    public ObjectProperty<Color> textColorProperty() { return textColor; }
+
     public Color getBarColor() { return barColor.get(); }
     public void setBarColor(final Color COLOR) { barColor.set(COLOR); }
     public ObjectProperty<Color> barColorProperty() { return barColor; }
+
+    public Color getColor() { return color.get(); }
+    public void setColor(final Color COLOR) { color.set(COLOR); }
+    public ObjectProperty<Color> colorProperty() { return color; }
 
     public void setSymbolPath(final double SCALE_X, final double SCALE_Y, final String PATH) {
         if (PATH.isEmpty()) {
@@ -327,19 +356,26 @@ public class Regulator extends Region {
             barCtx.setLineWidth(size * 0.04);
             drawBar(barCtx, targetValue.get());
 
-            dropShadow.setRadius(size * 0.016);
-            dropShadow.setOffsetY(size * 0.016);
-            highlight.setRadius(clamp(1d, 2d, size * 0.004));
-            highlight.setOffsetY(clamp(1d, 2d, size * 0.004));
-            innerShadow.setRadius(clamp(1d, 2d, size * 0.004));
-            innerShadow.setOffsetY(clamp(-1d, -2d, -size * 0.004));
+            double shadowRadius = clamp(1d, 2d, size * 0.004);
+            dropShadow.setRadius(shadowRadius);
+            dropShadow.setOffsetY(shadowRadius);
+            highlight.setRadius(shadowRadius);
+            highlight.setOffsetY(shadowRadius);
+            innerShadow.setRadius(shadowRadius);
+            innerShadow.setOffsetY(-shadowRadius);
 
             double center = size * 0.5;
             scaleFactor = size / PREFERRED_WIDTH;
+            ring.setCache(false);
             ring.getTransforms().setAll(new Scale(scaleFactor, scaleFactor, 0, 0));
+            ring.setCache(true);
+            ring.setCacheHint(CacheHint.SPEED);
 
+            mainCircle.setCache(false);
             mainCircle.setRadius(size * 0.3);
             mainCircle.setCenterX(center); mainCircle.setCenterY(center);
+            mainCircle.setCache(true);
+            mainCircle.setCacheHint(CacheHint.SPEED);
 
             text.setFont(Fonts.robotoMedium(size * 0.216));
             text.relocate((size - text.getLayoutBounds().getWidth()) * 0.5, size * 0.33);
@@ -351,15 +387,24 @@ public class Regulator extends Region {
             indicatorRotate.setPivotX(center);
             indicatorRotate.setPivotY(center);
 
+            symbol.setCache(false);
             symbol.setPrefSize(size * 0.112, size * 0.112);
             symbol.relocate((size - symbol.getPrefWidth()) * 0.5, size * 0.62);
+            symbol.setCache(true);
+            symbol.setCacheHint(CacheHint.SPEED);
 
             redraw();
         }
     }
 
     private void redraw() {
+        pane.setBackground(new Background(new BackgroundFill(color.get().darker(), new CornerRadii(1024), Insets.EMPTY)));
+        mainCircle.setFill(color.get().darker().darker());
+        ring.setFill(color.get());
+        indicator.setFill(color.get().darker());
+        indicator.setStroke(color.get().darker().darker());
         symbol.setBackground(new Background(new BackgroundFill(symbolColor.get(), CornerRadii.EMPTY, Insets.EMPTY)));
+        text.setFill(textColor.get());
         barCtx.setStroke(barColor.get());
         rotate(targetValue.get());
     }
@@ -368,5 +413,4 @@ public class Regulator extends Region {
     // ******************** Event Handling ************************************
     public void setOnTargetSet(final EventHandler<RegulatorEvent> HANDLER) { addEventHandler(RegulatorEvent.TARGET_SET, HANDLER); }
     public void removeOnTargetSet(final EventHandler<RegulatorEvent> HANDLER) { removeEventHandler(RegulatorEvent.TARGET_SET, HANDLER); }
-
 }

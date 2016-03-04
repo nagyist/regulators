@@ -50,6 +50,9 @@ public class Main extends Application {
                                     .prefSize(400, 400)
                                     .barColor(Color.rgb(255, 222, 102))
                                     .unit("%")
+                                    //.textColor(Color.YELLOW)
+                                    //.symbolColor(Color.MAGENTA)
+                                    //.color(Color.PURPLE)
                                     .onTargetSet(e -> System.out.println("New target set to " + regulator.getTargetValue()))
                                     .build();
 
@@ -76,12 +79,17 @@ public class Main extends Application {
                                                                                "L 23.3333 17.6471 C 23.9782 17.6471 24.5 17.1209 24.5 16.4706 " +
                                                                                "L 24.5 14.1176 L 26.8333 14.1176 C 27.4782 14.1176 28 13.5915 " +
                                                                                "28 12.9412 L 28 7.0588 C 28 6.4085 27.4782 5.8824 26.8333 5.8824 Z")
+                                                    //.symbolColor(Color.CRIMSON)
+                                                    //.textColor(Color.MAGENTA)
+                                                    //.color(Color.RED)
                                                     .onTargetSet(e -> System.out.println("New target set to " + feedbackRegulator.getTargetValue()))
                                                     .onAdjusted(e -> System.out.println("Battery charge is " + feedbackRegulator.getCurrentValue() + "%"))
                                                     .build();
 
         colorRegulator = ColorRegulatorBuilder.create()
                                               .prefSize(400, 400)
+                                              //.textColor(Color.YELLOW)
+                                              //.color(Color.PURPLE)
                                               .onButtonOnPressed(e -> System.out.println("Light ON"))
                                               .onButtonOffPressed(e -> System.out.println("Light OFF"))
                                               .build();

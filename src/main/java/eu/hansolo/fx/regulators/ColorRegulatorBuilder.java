@@ -62,6 +62,16 @@ public class ColorRegulatorBuilder<B extends ColorRegulatorBuilder<B>> {
         return (B)this;
     }
 
+    public final B textColor(final Color COLOR) {
+        properties.put("textColor", new SimpleObjectProperty<>(COLOR));
+        return (B)this;
+    }
+
+    public final B color(final Color COLOR) {
+        properties.put("color", new SimpleObjectProperty<>(COLOR));
+        return (B)this;
+    }
+
     public final B gradientStops(final Stop... STOPS) {
         properties.put("gradientStopsArray", new SimpleObjectProperty<>(STOPS));
         return (B)this;
@@ -219,19 +229,22 @@ public class ColorRegulatorBuilder<B extends ColorRegulatorBuilder<B>> {
                 CONTROL.setTargetValue(((DoubleProperty) properties.get(key)).get());
             } else if ("targetColor".equals(key)) {
                 CONTROL.setTargetColor(((ObjectProperty<Color>) properties.get(key)).get());
+            } else if ("textColor".equals(key)) {
+                CONTROL.setTextColor(((ObjectProperty<Color>) properties.get(key)).get());
+            } else if ("color".equals(key)) {
+                CONTROL.setColor(((ObjectProperty<Color>) properties.get(key)).get());
             } else if ("onTargetSet".equals(key)) {
                 CONTROL.setOnTargetSet(((ObjectProperty<EventHandler>) properties.get(key)).get());
-            }else if ("onButtonOnPressed".equals(key)) {
+            } else if ("onButtonOnPressed".equals(key)) {
                 CONTROL.setOnButtonOnPressed(((ObjectProperty<EventHandler>) properties.get(key)).get());
-            }else if ("onButtonOnReleased".equals(key)) {
+            } else if ("onButtonOnReleased".equals(key)) {
                 CONTROL.setOnButtonOnReleased(((ObjectProperty<EventHandler>) properties.get(key)).get());
-            }else if ("onButtonOffPressed".equals(key)) {
+            } else if ("onButtonOffPressed".equals(key)) {
                 CONTROL.setOnButtonOffPressed(((ObjectProperty<EventHandler>) properties.get(key)).get());
-            }else if ("onButtonOffReleased".equals(key)) {
+            } else if ("onButtonOffReleased".equals(key)) {
                 CONTROL.setOnButtonOffReleased(((ObjectProperty<EventHandler>) properties.get(key)).get());
             }
         }
         return CONTROL;
     }
 }
-
