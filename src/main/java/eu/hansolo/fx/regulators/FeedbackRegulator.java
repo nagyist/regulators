@@ -40,6 +40,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.ArcType;
@@ -51,6 +52,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
+import org.kordamp.ikonli.Ikon;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,6 +91,8 @@ public class FeedbackRegulator extends Region {
     private Text                        targetText;
     private Circle                      indicator;
     private Region                      symbol;
+    private StackPane                   iconPane;
+    private FontIcon                    icon;
     private Pane                        pane;
     private DropShadow                  dropShadow;
     private InnerShadow                 highlight;
@@ -101,6 +106,7 @@ public class FeedbackRegulator extends Region {
     private IntegerProperty             decimals;
     private StringProperty              unit;
     private ObjectProperty<Color>       symbolColor;
+    private ObjectProperty<Color>       iconColor;
     private ObjectProperty<Color>       textColor;
     private ObjectProperty<Color>       color;
     private String                      formatString;
@@ -179,25 +185,33 @@ public class FeedbackRegulator extends Region {
             @Override public Object getBean() { return FeedbackRegulator.this; }
             @Override public String getName() { return "unit"; }
         };
-        symbolColor  = new ObjectPropertyBase<Color>(Color.WHITE) {
-            @Override public void set(final Color COLOR) {
-                super.set(null == COLOR ? Color.WHITE : COLOR);
+        symbolColor  = new ObjectPropertyBase<Color>(Color.TRANSPARENT) {
+            @Override protected void invalidated() {
+                set(null == get() ? Color.WHITE : get());
                 redraw();
             }
             @Override public Object getBean() { return FeedbackRegulator.this; }
             @Override public String getName() { return "symbolColor"; }
         };
+        iconColor    = new ObjectPropertyBase<Color>(Color.TRANSPARENT) {
+            @Override protected void invalidated() {
+                set(null == get() ? Color.WHITE : get());
+                redraw();
+            }
+            @Override public Object getBean() { return FeedbackRegulator.this; }
+            @Override public String getName() { return "iconColor"; }
+        };
         textColor    = new ObjectPropertyBase<Color>(Color.WHITE) {
-            @Override public void set(final Color COLOR) {
-                super.set(null == COLOR ? Color.WHITE:  COLOR);
+            @Override protected void invalidated() {
+                set(null == get() ? Color.WHITE : get());
                 redraw();
             }
             @Override public Object getBean() { return FeedbackRegulator.this; }
             @Override public String getName() { return "textColor"; }
         };
         color        = new ObjectPropertyBase<Color>(Color.rgb(66,71,79)) {
-            @Override public void set(final Color COLOR) {
-                super.set(null == COLOR ? Color.rgb(66,71,79) : COLOR);
+            @Override protected void invalidated() {
+                super.set(null == get() ? Color.rgb(66,71,79) : get());
                 redraw();
             }
             @Override public Object getBean() { return FeedbackRegulator.this; }
@@ -284,8 +298,14 @@ public class FeedbackRegulator extends Region {
 
         symbol = new Region();
         symbol.getStyleClass().setAll("symbol");
+        symbol.setCacheHint(CacheHint.SPEED);
 
-        pane = new Pane(barCanvas, barOverlayCanvas, ring, mainCircle, text, targetText, indicator, symbol);
+        icon = new FontIcon();
+        icon.setTextOrigin(VPos.CENTER);
+
+        iconPane = new StackPane(symbol, icon);
+
+        pane = new Pane(barCanvas, barOverlayCanvas, ring, mainCircle, text, targetText, indicator, iconPane);
         pane.setPrefSize(PREFERRED_HEIGHT, PREFERRED_HEIGHT);
         pane.setBackground(new Background(new BackgroundFill(color.get().darker(), new CornerRadii(1024), Insets.EMPTY)));
         pane.setEffect(highlight);
@@ -333,6 +353,10 @@ public class FeedbackRegulator extends Region {
     public Color getSymbolColor() { return symbolColor.get(); }
     public void setSymbolColor(final Color COLOR) { symbolColor.set(COLOR); }
     public ObjectProperty<Color> symbolColorProperty() { return symbolColor; }
+
+    public Color getIconColor() { return iconColor.get(); }
+    public void setIconColor(final Color COLOR) { iconColor.set(COLOR); }
+    public ObjectProperty<Color> iconColorProperty() { return iconColor; }
 
     public Color getTextColor() { return textColor.get(); }
     public void setTextColor(final Color COLOR) { textColor.set(COLOR); }
@@ -390,6 +414,13 @@ public class FeedbackRegulator extends Region {
                                                .toString());
             symbol.setVisible(true);
         }
+        symbol.setCache(false);
+        resize();
+        symbol.setCache(true);
+    }
+
+    public void setIcon(final Ikon ICON) {
+        icon.setIconCode(ICON);
         resize();
     }
 
@@ -508,11 +539,10 @@ public class FeedbackRegulator extends Region {
             indicatorRotate.setPivotX(center);
             indicatorRotate.setPivotY(center);
 
-            symbol.setCache(false);
-            symbol.setPrefSize(size * 0.112, size * 0.112);
-            symbol.relocate((size - symbol.getPrefWidth()) * 0.5, size * 0.62);
-            symbol.setCache(true);
-            symbol.setCacheHint(CacheHint.SPEED);
+            icon.setIconSize((int) (size * 0.112));
+
+            iconPane.setPrefSize(size * 0.112, size * 0.112);
+            iconPane.relocate((size - iconPane.getPrefWidth()) * 0.5, size * 0.62);
 
             redraw();
         }
@@ -525,6 +555,7 @@ public class FeedbackRegulator extends Region {
         indicator.setFill(color.get().darker());
         indicator.setStroke(color.get().darker().darker());
         symbol.setBackground(new Background(new BackgroundFill(symbolColor.get(), CornerRadii.EMPTY, Insets.EMPTY)));
+        icon.setFill(iconColor.get());
         targetText.setFill(textColor.get().darker());
         text.setFill(textColor.get());
         rotate(targetValue.get());

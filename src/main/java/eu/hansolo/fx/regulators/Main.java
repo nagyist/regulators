@@ -18,10 +18,8 @@ package eu.hansolo.fx.regulators;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
+import javafx.scene.Scene;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -29,7 +27,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Stop;
 import javafx.stage.Stage;
-import javafx.scene.Scene;
+import org.kordamp.ikonli.fontawesome.FontAwesome;
+import org.kordamp.ikonli.material.Material;
+import org.kordamp.ikonli.materialdesign.MaterialDesign;
 
 
 /**
@@ -52,6 +52,8 @@ public class Main extends Application {
                                     .unit("%")
                                     //.textColor(Color.YELLOW)
                                     //.symbolColor(Color.MAGENTA)
+                                    .icon(FontAwesome.MUSIC)
+                                    .iconColor(Color.WHITE)
                                     //.color(Color.PURPLE)
                                     .onTargetSet(e -> System.out.println("New target set to " + regulator.getTargetValue()))
                                     .build();
@@ -67,7 +69,7 @@ public class Main extends Application {
                                                                    new Stop(0.5, Color.YELLOW),
                                                                    new Stop(0.75, Color.GREEN),
                                                                    new Stop(1.0, Color.LIME))
-                                                    .symbolPath(1, 0.71428571, "M 11.7829 11.7647 L 9.3333 20 L 17.5 8.2353 L 12.7171 " +
+                                                    /*.symbolPath(1, 0.71428571, "M 11.7829 11.7647 L 9.3333 20 L 17.5 8.2353 L 12.7171 " +
                                                                                "8.2353 L 15.1667 0 L 7 11.7647 L 11.7829 11.7647 ZM 1.1667 " +
                                                                                "17.6471 L 8.8138 17.6471 L 9.5156 15.2941 L 2.3333 15.2941 " +
                                                                                "L 2.3333 4.7059 L 10.4749 4.7059 L 12.1087 2.3529 L 1.1667 " +
@@ -79,7 +81,10 @@ public class Main extends Application {
                                                                                "L 23.3333 17.6471 C 23.9782 17.6471 24.5 17.1209 24.5 16.4706 " +
                                                                                "L 24.5 14.1176 L 26.8333 14.1176 C 27.4782 14.1176 28 13.5915 " +
                                                                                "28 12.9412 L 28 7.0588 C 28 6.4085 27.4782 5.8824 26.8333 5.8824 Z")
+                                                    */
                                                     //.symbolColor(Color.CRIMSON)
+                                                    .icon(MaterialDesign.MDI_BATTERY_CHARGING_60)
+                                                    .iconColor(Color.WHITE)
                                                     //.textColor(Color.MAGENTA)
                                                     //.color(Color.RED)
                                                     .onTargetSet(e -> System.out.println("New target set to " + feedbackRegulator.getTargetValue()))

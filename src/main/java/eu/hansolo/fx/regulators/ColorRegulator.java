@@ -111,24 +111,24 @@ public class ColorRegulator extends Region {
             @Override public String getName() { return "targetValue"; }
         };
         targetColor  = new ObjectPropertyBase<Color>(Color.YELLOW) {
-            @Override public void set(final Color COLOR) {
-                super.set(null == COLOR ? Color.BLACK : COLOR);
-                currentColorCircle.setFill(COLOR);
+            @Override protected void invalidated() {
+                super.set(null == get() ? Color.BLACK : get());
+                currentColorCircle.setFill(get());
             }
             @Override public Object getBean() { return ColorRegulator.this; }
             @Override public String getName() { return "targetColor"; }
         };
         textColor    = new ObjectPropertyBase<Color>(Color.WHITE) {
-            @Override public void set(final Color COLOR) {
-                super.set(null == COLOR ? Color.WHITE:  COLOR);
+            @Override protected void invalidated() {
+                super.set(null == get() ? Color.WHITE:  get());
                 redraw();
             }
             @Override public Object getBean() { return ColorRegulator.this; }
             @Override public String getName() { return "textColor"; }
         };
         color        = new ObjectPropertyBase<Color>(Color.rgb(66,71,79)) {
-            @Override public void set(final Color COLOR) {
-                super.set(null == COLOR ? Color.rgb(66,71,79) : COLOR);
+            @Override protected void invalidated() {
+                super.set(null == get() ? Color.rgb(66,71,79) : get());
                 redraw();
             }
             @Override public Object getBean() { return ColorRegulator.this; }

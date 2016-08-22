@@ -33,6 +33,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Circle;
@@ -42,6 +43,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
+import org.kordamp.ikonli.Ikon;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.Locale;
 
@@ -64,6 +67,8 @@ public class Regulator extends Region {
     private Text                        text;
     private Circle                      indicator;
     private Region                      symbol;
+    private StackPane                   iconPane;
+    private FontIcon                    icon;
     private Pane                        pane;
     private DropShadow                  dropShadow;
     private InnerShadow                 highlight;
@@ -76,6 +81,7 @@ public class Regulator extends Region {
     private IntegerProperty             decimals;
     private StringProperty              unit;
     private ObjectProperty<Color>       symbolColor;
+    private ObjectProperty<Color>       iconColor;
     private ObjectProperty<Color>       textColor;
     private ObjectProperty<Color>       barColor;
     private ObjectProperty<Color>       color;
@@ -126,33 +132,41 @@ public class Regulator extends Region {
             @Override public Object getBean() { return Regulator.this; }
             @Override public String getName() { return "unit"; }
         };
-        symbolColor  = new ObjectPropertyBase<Color>(Color.WHITE) {
-            @Override public void set(final Color COLOR) {
-                super.set(null == COLOR ? Color.WHITE : COLOR);
+        symbolColor  = new ObjectPropertyBase<Color>(Color.TRANSPARENT) {
+            @Override protected void invalidated() {
+                set(null == get() ? Color.WHITE : get());
                 redraw();
             }
             @Override public Object getBean() { return Regulator.this; }
             @Override public String getName() { return "symbolColor"; }
         };
+        iconColor    = new ObjectPropertyBase<Color>(Color.TRANSPARENT) {
+            @Override protected void invalidated() {
+                set(null == get() ? Color.WHITE : get());
+                redraw();
+            }
+            @Override public Object getBean() { return Regulator.this; }
+            @Override public String getName() { return "iconColor"; }
+        };
         textColor    = new ObjectPropertyBase<Color>(Color.WHITE) {
-            @Override public void set(final Color COLOR) {
-                super.set(null == COLOR ? Color.WHITE:  COLOR);
+            @Override protected void invalidated() {
+                set(null == get() ? Color.WHITE : get());
                 redraw();
             }
             @Override public Object getBean() { return Regulator.this; }
             @Override public String getName() { return "textColor"; }
         };
         barColor     = new ObjectPropertyBase<Color>(Color.CYAN) {
-            @Override public void set(final Color COLOR) {
-                super.set(null == COLOR ? Color.CYAN : COLOR);
+            @Override protected void invalidated() {
+                super.set(null == get() ? Color.CYAN : get());
                 redraw();
             }
             @Override public Object getBean() { return Regulator.this; }
             @Override public String getName() { return "barColor"; }
         };
         color        = new ObjectPropertyBase<Color>(Color.rgb(66,71,79)) {
-            @Override public void set(final Color COLOR) {
-                super.set(null == COLOR ? Color.rgb(66,71,79) : COLOR);
+            @Override protected void invalidated() {
+                super.set(null == get() ? Color.rgb(66,71,79) : get());
                 redraw();
             }
             @Override public Object getBean() { return Regulator.this; }
@@ -219,8 +233,14 @@ public class Regulator extends Region {
 
         symbol = new Region();
         symbol.getStyleClass().setAll("symbol");
+        symbol.setCacheHint(CacheHint.SPEED);
 
-        pane = new Pane(barCanvas, ring, mainCircle, text, indicator, symbol);
+        icon = new FontIcon();
+        icon.setTextOrigin(VPos.CENTER);
+
+        iconPane = new StackPane(symbol, icon);
+
+        pane = new Pane(barCanvas, ring, mainCircle, text, indicator, iconPane);
         pane.setPrefSize(PREFERRED_HEIGHT, PREFERRED_HEIGHT);
         pane.setBackground(new Background(new BackgroundFill(color.get().darker(), new CornerRadii(1024), Insets.EMPTY)));
         pane.setEffect(highlight);
@@ -264,6 +284,10 @@ public class Regulator extends Region {
     public void setSymbolColor(final Color COLOR) { symbolColor.set(COLOR); }
     public ObjectProperty<Color> symbolColorProperty() { return symbolColor; }
 
+    public Color getIconColor() { return iconColor.get(); }
+    public void setIconColor(final Color COLOR) { iconColor.set(COLOR); }
+    public ObjectProperty<Color> iconColorProperty() { return iconColor; }
+
     public Color getTextColor() { return textColor.get(); }
     public void setTextColor(final Color COLOR) { textColor.set(COLOR); }
     public ObjectProperty<Color> textColorProperty() { return textColor; }
@@ -286,6 +310,13 @@ public class Regulator extends Region {
                                                .toString());
             symbol.setVisible(true);
         }
+        symbol.setCache(false);
+        resize();
+        symbol.setCache(true);
+    }
+
+    public void setIcon(final Ikon ICON) {
+        icon.setIconCode(ICON);
         resize();
     }
 
@@ -387,11 +418,10 @@ public class Regulator extends Region {
             indicatorRotate.setPivotX(center);
             indicatorRotate.setPivotY(center);
 
-            symbol.setCache(false);
-            symbol.setPrefSize(size * 0.112, size * 0.112);
-            symbol.relocate((size - symbol.getPrefWidth()) * 0.5, size * 0.62);
-            symbol.setCache(true);
-            symbol.setCacheHint(CacheHint.SPEED);
+            icon.setIconSize((int) (size * 0.112));
+
+            iconPane.setPrefSize(size * 0.112, size * 0.112);
+            iconPane.relocate((size - iconPane.getPrefWidth()) * 0.5, size * 0.62);
 
             redraw();
         }
@@ -404,6 +434,7 @@ public class Regulator extends Region {
         indicator.setFill(color.get().darker());
         indicator.setStroke(color.get().darker().darker());
         symbol.setBackground(new Background(new BackgroundFill(symbolColor.get(), CornerRadii.EMPTY, Insets.EMPTY)));
+        icon.setFill(iconColor.get());
         text.setFill(textColor.get());
         barCtx.setStroke(barColor.get());
         rotate(targetValue.get());

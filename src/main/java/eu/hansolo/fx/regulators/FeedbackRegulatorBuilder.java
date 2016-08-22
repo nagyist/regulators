@@ -30,6 +30,7 @@ import javafx.geometry.Dimension2D;
 import javafx.geometry.Insets;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Stop;
+import org.kordamp.ikonli.Ikon;
 
 import java.util.HashMap;
 import java.util.List;
@@ -81,6 +82,11 @@ public class FeedbackRegulatorBuilder<B extends FeedbackRegulatorBuilder<B>> {
         return (B)this;
     }
 
+    public final B iconColor(final Color COLOR) {
+        properties.put("iconColor", new SimpleObjectProperty<>(COLOR));
+        return (B)this;
+    }
+
     public final B textColor(final Color COLOR) {
         properties.put("textColor", new SimpleObjectProperty<>(COLOR));
         return (B)this;
@@ -110,6 +116,11 @@ public class FeedbackRegulatorBuilder<B extends FeedbackRegulatorBuilder<B>> {
         properties.put("symbolScaleX", new SimpleDoubleProperty(SCALE_X));
         properties.put("symbolScaleY", new SimpleDoubleProperty(SCALE_Y));
         properties.put("symbolPath", new SimpleStringProperty(PATH));
+        return (B)this;
+    }
+
+    public final B icon(final Ikon ICON) {
+        properties.put("icon", new SimpleObjectProperty<>(ICON));
         return (B)this;
     }
 
@@ -264,6 +275,8 @@ public class FeedbackRegulatorBuilder<B extends FeedbackRegulatorBuilder<B>> {
                 CONTROL.setUnit(((StringProperty) properties.get(key)).get());
             } else if ("symbolColor".equals(key)) {
                 CONTROL.setSymbolColor(((ObjectProperty<Color>) properties.get(key)).get());
+            } else if ("iconColor".equals(key)) {
+                CONTROL.setIconColor(((ObjectProperty<Color>) properties.get(key)).get());
             } else if ("textColor".equals(key)) {
                 CONTROL.setTextColor(((ObjectProperty<Color>) properties.get(key)).get());
             } else if ("color".equals(key)) {
@@ -274,6 +287,8 @@ public class FeedbackRegulatorBuilder<B extends FeedbackRegulatorBuilder<B>> {
                 CONTROL.setSymbolPath(((DoubleProperty) properties.get("symbolScaleX")).get(),
                                       ((DoubleProperty) properties.get("symbolScaleY")).get(),
                                       ((StringProperty) properties.get(key)).get());
+            } else if ("icon".equals(key)) {
+                CONTROL.setIcon(((ObjectProperty<Ikon>) properties.get(key)).get());
             }
         }
         return CONTROL;
