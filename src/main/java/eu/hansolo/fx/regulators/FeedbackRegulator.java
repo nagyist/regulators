@@ -117,7 +117,7 @@ public class FeedbackRegulator extends Region {
     // ******************** Constructors **************************************
     public FeedbackRegulator() {
         getStylesheets().add(FeedbackRegulator.class.getResource("feedback_regulator.css").toExternalForm());
-        scaleFactor  = 1d;
+        scaleFactor  = 1.0;
         minValue     = new DoublePropertyBase(0) {
             @Override public void set(final double VALUE) {
                 super.set(clamp(-Double.MAX_VALUE, maxValue.get(), VALUE));
@@ -408,8 +408,8 @@ public class FeedbackRegulator extends Region {
         if (PATH.isEmpty()) {
             symbol.setVisible(false);
         } else {
-            symbol.setStyle(new StringBuilder().append("-fx-scale-x:").append(clamp(0d, 1d, SCALE_X)).append(";")
-                                               .append("-fx-scale-y:").append(clamp(0d, 1d, SCALE_Y)).append(";")
+            symbol.setStyle(new StringBuilder().append("-fx-scale-x:").append(clamp(0.0, 1.0, SCALE_X)).append(";")
+                                               .append("-fx-scale-y:").append(clamp(0.0, 1.0, SCALE_Y)).append(";")
                                                .append("-fx-shape:\"").append(PATH).append("\";")
                                                .toString());
             symbol.setVisible(true);
@@ -505,7 +505,7 @@ public class FeedbackRegulator extends Region {
             barOverlayCtx.setLineWidth(size * 0.03);
             drawBar(barOverlayCtx, currentValue.get());
 
-            double shadowRadius = clamp(1d, 2d, size * 0.004);
+            double shadowRadius = clamp(1.0, 2.0, size * 0.004);
             dropShadow.setRadius(shadowRadius);
             dropShadow.setOffsetY(shadowRadius);
             highlight.setRadius(shadowRadius);

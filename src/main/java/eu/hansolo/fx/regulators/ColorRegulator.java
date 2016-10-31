@@ -16,6 +16,9 @@
 
 package eu.hansolo.fx.regulators;
 
+import javafx.animation.AnimationTimer;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.BooleanPropertyBase;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.DoublePropertyBase;
 import javafx.beans.property.ObjectProperty;
@@ -68,8 +71,8 @@ public class ColorRegulator extends Region {
     private static final double         MINIMUM_HEIGHT   = 50;
     private static final double         MAXIMUM_WIDTH    = 1024;
     private static final double         MAXIMUM_HEIGHT   = 1024;
-    private static final double         MIN_VALUE        = 0d;
-    private static final double         MAX_VALUE        = 1d;
+    private static final double         MIN_VALUE        = 0.0;
+    private static final double         MAX_VALUE        = 1.0;
     private              double         BAR_START_ANGLE  = -130;
     private              double         ANGLE_RANGE      = 280;
     private final        RegulatorEvent TARGET_SET_EVENT = new RegulatorEvent(RegulatorEvent.TARGET_SET);
@@ -102,7 +105,7 @@ public class ColorRegulator extends Region {
 
     // ******************** Constructors **************************************
     public ColorRegulator() {
-        scaleFactor  = 1d;
+        scaleFactor  = 1.0;
         targetValue  = new DoublePropertyBase(0) {
             @Override public void set(final double VALUE) {
                 super.set(clamp(MIN_VALUE, MAX_VALUE, VALUE));
@@ -135,6 +138,7 @@ public class ColorRegulator extends Region {
             @Override public String getName() { return "color"; }
         };
         angleStep    = ANGLE_RANGE / (MAX_VALUE - MIN_VALUE);
+
         init();
         initGraphics();
         registerListeners();
@@ -403,7 +407,7 @@ public class ColorRegulator extends Region {
             buttonOff.setRadiusY(buttonRadius);
             buttonOff.setStrokeWidth(buttonWidth);
 
-            double shadowRadius = clamp(1d, 2d, size * 0.004);
+            double shadowRadius = clamp(1.0, 2.0, size * 0.004);
             dropShadow.setRadius(shadowRadius);
             dropShadow.setOffsetY(shadowRadius);
             highlight.setRadius(shadowRadius);
