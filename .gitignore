@@ -1,5 +1,7 @@
 .gradle
 out
 Regulators.iml
-gradle
 .idea
+*.class
+*.jar
+hs_err_pid*
