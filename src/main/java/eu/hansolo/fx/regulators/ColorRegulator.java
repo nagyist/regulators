@@ -16,9 +16,6 @@
 
 package eu.hansolo.fx.regulators;
 
-import javafx.animation.AnimationTimer;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.BooleanPropertyBase;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.DoublePropertyBase;
 import javafx.beans.property.ObjectProperty;
@@ -28,8 +25,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.VPos;
 import javafx.scene.CacheHint;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.InnerShadow;
@@ -47,7 +42,6 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
@@ -77,8 +71,7 @@ public class ColorRegulator extends Region {
     private              double         ANGLE_RANGE      = 280;
     private final        RegulatorEvent TARGET_SET_EVENT = new RegulatorEvent(RegulatorEvent.TARGET_SET);
     private double                      size;
-    private Canvas                      barCanvas;
-    private GraphicsContext             barCtx;
+    private Arc                         barArc;
     private Arc                         buttonOn;
     private Arc                         buttonOff;
     private Shape                       ring;
@@ -183,10 +176,11 @@ public class ColorRegulator extends Region {
         gradientLookup = new GradientLookup(stops);
 
         barGradient = new ConicalGradient(reorderedStops);
-        barCanvas   = new Canvas(PREFERRED_WIDTH, PREFERRED_HEIGHT);
-        barCtx      = barCanvas.getGraphicsContext2D();
-        barCtx.setLineCap(StrokeLineCap.ROUND);
-        barCtx.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, PREFERRED_WIDTH, PREFERRED_HEIGHT)));
+        barArc = new Arc(PREFERRED_WIDTH * 0.5, PREFERRED_HEIGHT * 0.5, PREFERRED_WIDTH * 0.46, PREFERRED_HEIGHT * 0.46, BAR_START_ANGLE, 0);
+        barArc.setType(ArcType.OPEN);
+        barArc.setStrokeLineCap(StrokeLineCap.ROUND);
+        barArc.setFill(null);
+        barArc.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, PREFERRED_WIDTH, PREFERRED_HEIGHT)));
 
         buttonOn = new Arc(PREFERRED_WIDTH * 0.5, PREFERRED_HEIGHT * 0.5, PREFERRED_WIDTH * 0.46, PREFERRED_HEIGHT * 0.46, -125, 34.75);
         buttonOn.setFill(null);
@@ -238,7 +232,7 @@ public class ColorRegulator extends Region {
         currentColorCircle = new Circle();
         currentColorCircle.setFill(targetColor.get());
 
-        pane = new Pane(barCanvas, ring, mainCircle, currentColorCircle, innerRing, indicator, buttonOn, textOn, buttonOff, textOff);
+        pane = new Pane(barArc, ring, mainCircle, currentColorCircle, innerRing, indicator, buttonOn, textOn, buttonOff, textOff);
         pane.setPrefSize(PREFERRED_HEIGHT, PREFERRED_HEIGHT);
         pane.setBackground(new Background(new BackgroundFill(color.get().darker(), new CornerRadii(1024), Insets.EMPTY)));
         pane.setEffect(highlight);
@@ -283,7 +277,7 @@ public class ColorRegulator extends Region {
     public void setGradientStops(final List<Stop> STOPS) {
         gradientLookup.setStops(STOPS);
         barGradient = new ConicalGradient(reorderStops(STOPS));
-        barCtx.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, PREFERRED_WIDTH, PREFERRED_HEIGHT)));
+        barArc.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, PREFERRED_WIDTH, PREFERRED_HEIGHT)));
     }
 
     public void setOn(final boolean IS_ON) { currentColorCircle.setVisible(IS_ON); }
@@ -351,14 +345,8 @@ public class ColorRegulator extends Region {
         currentColorCircle.setFill(targetColor.get());
     }
 
-    private void drawBar(final GraphicsContext CTX, final double VALUE) {
-        CTX.clearRect(0, 0, size, size);
-        double barXY          = size * 0.04;
-        double barWH          = size * 0.92;
-        double barAngleExtend = (VALUE - MIN_VALUE) * angleStep;
-        CTX.save();
-        CTX.strokeArc(barXY, barXY, barWH, barWH, BAR_START_ANGLE, -barAngleExtend, ArcType.OPEN);
-        CTX.restore();
+    private void drawBar(final double VALUE) {
+        barArc.setLength(-(VALUE - MIN_VALUE) * angleStep);
     }
 
     private void buttonOnPressed(final boolean PRESSED) {
@@ -384,14 +372,16 @@ public class ColorRegulator extends Region {
             pane.setPrefSize(size, size);
             pane.relocate((getWidth() - size) * 0.5, (getHeight() - size) * 0.5);
 
-            barCanvas.setCache(false);
-            barCanvas.setWidth(size);
-            barCanvas.setHeight(size);
-            barCtx.setLineWidth(size * 0.04);
-            barCtx.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, size, size)));
-            drawBar(barCtx, MAX_VALUE);
-            barCanvas.setCache(true);
-            barCanvas.setCacheHint(CacheHint.SPEED);
+            barArc.setCache(false);
+            barArc.setCenterX(size * 0.5);
+            barArc.setCenterY(size * 0.5);
+            barArc.setRadiusX(size * 0.46);
+            barArc.setRadiusY(size * 0.46);
+            barArc.setStrokeWidth(size * 0.04);
+            barArc.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, size, size)));
+            drawBar(MAX_VALUE);
+            barArc.setCache(true);
+            barArc.setCacheHint(CacheHint.SPEED);
 
             double buttonRadius = size * 0.46;
             double buttonWidth  = size * 0.072;

@@ -16,14 +16,19 @@
 
 package eu.hansolo.fx.regulators;
 
-import javafx.beans.property.*;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.DoublePropertyBase;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.IntegerPropertyBase;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ObjectPropertyBase;
+import javafx.beans.property.StringProperty;
+import javafx.beans.property.StringPropertyBase;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.VPos;
 import javafx.scene.CacheHint;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.InnerShadow;
@@ -35,6 +40,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Arc;
 import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
@@ -60,8 +66,7 @@ public class Regulator extends Region {
     private static final double         ANGLE_RANGE      = 280;
     private final        RegulatorEvent TARGET_SET_EVENT = new RegulatorEvent(RegulatorEvent.TARGET_SET);
     private double                      size;
-    private Canvas                      barCanvas;
-    private GraphicsContext             barCtx;
+    private Arc                         barArc;
     private Shape                       ring;
     private Circle                      mainCircle;
     private Text                        text;
@@ -205,10 +210,11 @@ public class Regulator extends Region {
         highlight.setInput(innerShadow);
         dropShadow.setInput(highlight);
 
-        barCanvas = new Canvas(PREFERRED_WIDTH, PREFERRED_HEIGHT);
-        barCtx    = barCanvas.getGraphicsContext2D();
-        barCtx.setLineCap(StrokeLineCap.ROUND);
-        barCtx.setStroke(barColor.get());
+        barArc = new Arc(PREFERRED_WIDTH * 0.5, PREFERRED_HEIGHT * 0.5, PREFERRED_WIDTH * 0.46, PREFERRED_HEIGHT * 0.46, BAR_START_ANGLE, 0);
+        barArc.setType(ArcType.OPEN);
+        barArc.setStrokeLineCap(StrokeLineCap.ROUND);
+        barArc.setFill(null);
+        barArc.setStroke(barColor.get());
 
         double center = PREFERRED_WIDTH * 0.5;
         ring = Shape.subtract(new Circle(center, center, PREFERRED_WIDTH * 0.42),
@@ -240,7 +246,7 @@ public class Regulator extends Region {
 
         iconPane = new StackPane(symbol, icon);
 
-        pane = new Pane(barCanvas, ring, mainCircle, text, indicator, iconPane);
+        pane = new Pane(barArc, ring, mainCircle, text, indicator, iconPane);
         pane.setPrefSize(PREFERRED_HEIGHT, PREFERRED_HEIGHT);
         pane.setBackground(new Background(new BackgroundFill(color.get().darker(), new CornerRadii(1024), Insets.EMPTY)));
         pane.setEffect(highlight);
@@ -355,21 +361,15 @@ public class Regulator extends Region {
 
     // ******************** Resizing ******************************************
     private void rotate(final double VALUE) {
-        drawBar(barCtx, VALUE);
+        drawBar(VALUE);
         indicatorRotate.setAngle((VALUE - minValue.get()) * angleStep - ANGLE_RANGE * 0.5);
         text.setText(String.format(Locale.US, formatString, VALUE));
         adjustTextSize(text, size * 0.48, size * 0.216);
         text.setLayoutX((size - text.getLayoutBounds().getWidth()) * 0.5);
     }
 
-    private void drawBar(final GraphicsContext CTX, final double VALUE) {
-        CTX.clearRect(0, 0, size, size);
-        double barXY          = size * 0.04;
-        double barWH          = size * 0.92;
-        double barAngleExtend = (VALUE - minValue.get()) * angleStep;
-        CTX.save();
-        CTX.strokeArc(barXY, barXY, barWH, barWH, BAR_START_ANGLE, -barAngleExtend, ArcType.OPEN);
-        CTX.restore();
+    private void drawBar(final double VALUE) {
+        barArc.setLength(-(VALUE - minValue.get()) * angleStep);
     }
 
     private void resize() {
@@ -382,10 +382,12 @@ public class Regulator extends Region {
             pane.setPrefSize(size, size);
             pane.relocate((getWidth() - size) * 0.5, (getHeight() - size) * 0.5);
 
-            barCanvas.setWidth(size);
-            barCanvas.setHeight(size);
-            barCtx.setLineWidth(size * 0.04);
-            drawBar(barCtx, targetValue.get());
+            barArc.setCenterX(size * 0.5);
+            barArc.setCenterY(size * 0.5);
+            barArc.setRadiusX(size * 0.46);
+            barArc.setRadiusY(size * 0.46);
+            barArc.setStrokeWidth(size * 0.04);
+            drawBar(targetValue.get());
 
             double shadowRadius = clamp(1.0, 2.0, size * 0.004);
             dropShadow.setRadius(shadowRadius);
@@ -436,7 +438,7 @@ public class Regulator extends Region {
         symbol.setBackground(new Background(new BackgroundFill(symbolColor.get(), CornerRadii.EMPTY, Insets.EMPTY)));
         icon.setFill(iconColor.get());
         text.setFill(textColor.get());
-        barCtx.setStroke(barColor.get());
+        barArc.setStroke(barColor.get());
         rotate(targetValue.get());
     }
 

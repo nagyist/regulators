@@ -29,8 +29,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.VPos;
 import javafx.scene.CacheHint;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.InnerShadow;
@@ -43,6 +41,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Stop;
+import javafx.scene.shape.Arc;
 import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
@@ -81,10 +80,8 @@ public class FeedbackRegulator extends Region {
     private final        RegulatorEvent ADJUSTED_EVENT   = new RegulatorEvent(RegulatorEvent.ADJUSTED);
     private final        RegulatorEvent TARGET_SET_EVENT = new RegulatorEvent(RegulatorEvent.TARGET_SET);
     private double                      size;
-    private Canvas                      barCanvas;
-    private GraphicsContext             barCtx;
-    private Canvas                      barOverlayCanvas;
-    private GraphicsContext             barOverlayCtx;
+    private Arc                         barArc;
+    private Arc                         overlayBarArc;
     private Shape                       ring;
     private Circle                      mainCircle;
     private Text                        text;
@@ -139,10 +136,10 @@ public class FeedbackRegulator extends Region {
                 super.set(clamp(minValue.get(), maxValue.get(), VALUE));
                 if ((int) get() == (int) currentValue.get()) {
                     targetText.setVisible(false);
-                    barOverlayCanvas.setVisible(false);
+                    overlayBarArc.setVisible(false);
                 } else {
                     targetText.setVisible(true);
-                    barOverlayCanvas.setVisible(true);
+                    overlayBarArc.setVisible(true);
                 }
             }
             @Override public Object getBean() { return FeedbackRegulator.this; }
@@ -154,14 +151,14 @@ public class FeedbackRegulator extends Region {
                 if ((int) targetValue.get() == (int) get()) {
                     fireEvent(ADJUSTED_EVENT);
                     targetText.setVisible(false);
-                    barOverlayCanvas.setVisible(false);
+                    overlayBarArc.setVisible(false);
                 } else {
                     fireEvent(ADJUSTING_EVENT);
                     targetText.setVisible(true);
-                    barOverlayCanvas.setVisible(true);
+                    overlayBarArc.setVisible(true);
                 }
                 setText(get());
-                drawBar(barOverlayCtx, get());
+                drawOverlayBar(get());
                 redraw();
             }
             @Override public Object getBean() { return FeedbackRegulator.this; }
@@ -259,16 +256,19 @@ public class FeedbackRegulator extends Region {
         };
 
         barGradient = new ConicalGradient(stops);
-        barCanvas   = new Canvas(PREFERRED_WIDTH, PREFERRED_HEIGHT);
-        barCtx      = barCanvas.getGraphicsContext2D();
-        barCtx.setLineCap(StrokeLineCap.ROUND);
-        barCtx.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, PREFERRED_WIDTH, PREFERRED_HEIGHT)));
 
-        barOverlayCanvas = new Canvas(PREFERRED_WIDTH, PREFERRED_HEIGHT);
-        barOverlayCanvas.setVisible((int) targetValue.get() != (int) currentValue.get());
-        barOverlayCtx    = barOverlayCanvas.getGraphicsContext2D();
-        barOverlayCtx.setLineCap(StrokeLineCap.ROUND);
-        barOverlayCtx.setStroke(Color.rgb(0, 0, 0, 0.3));
+        barArc = new Arc(PREFERRED_WIDTH * 0.5, PREFERRED_HEIGHT * 0.5, PREFERRED_WIDTH * 0.46, PREFERRED_HEIGHT * 0.46, BAR_START_ANGLE, 0);
+        barArc.setType(ArcType.OPEN);
+        barArc.setStrokeLineCap(StrokeLineCap.ROUND);
+        barArc.setFill(null);
+        barArc.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, PREFERRED_WIDTH, PREFERRED_HEIGHT)));
+
+        overlayBarArc = new Arc(PREFERRED_WIDTH * 0.5, PREFERRED_HEIGHT * 0.5, PREFERRED_WIDTH * 0.46, PREFERRED_HEIGHT * 0.46, BAR_START_ANGLE, 0);
+        overlayBarArc.setType(ArcType.OPEN);
+        overlayBarArc.setStrokeLineCap(StrokeLineCap.ROUND);
+        overlayBarArc.setFill(null);
+        overlayBarArc.setStroke(Color.rgb(0, 0, 0, 0.3));
+        overlayBarArc.setVisible((int) targetValue.get() != (int) currentValue.get());
 
         double center = PREFERRED_WIDTH * 0.5;
         ring = Shape.subtract(new Circle(center, center, PREFERRED_WIDTH * 0.42),
@@ -305,7 +305,7 @@ public class FeedbackRegulator extends Region {
 
         iconPane = new StackPane(symbol, icon);
 
-        pane = new Pane(barCanvas, barOverlayCanvas, ring, mainCircle, text, targetText, indicator, iconPane);
+        pane = new Pane(barArc, overlayBarArc, ring, mainCircle, text, targetText, indicator, iconPane);
         pane.setPrefSize(PREFERRED_HEIGHT, PREFERRED_HEIGHT);
         pane.setBackground(new Background(new BackgroundFill(color.get().darker(), new CornerRadii(1024), Insets.EMPTY)));
         pane.setEffect(highlight);
@@ -370,7 +370,7 @@ public class FeedbackRegulator extends Region {
     public void setGradientStops(final Stop... STOPS) { setGradientStops(Arrays.asList(STOPS)); }
     public void setGradientStops(final List<Stop> STOPS) {
         barGradient = new ConicalGradient(reorderStops(STOPS));
-        barCtx.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, PREFERRED_WIDTH, PREFERRED_HEIGHT)));
+        barArc.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, PREFERRED_WIDTH, PREFERRED_HEIGHT)));
     }
 
     private List<Stop> reorderStops(final Stop... STOPS) { return reorderStops(Arrays.asList(STOPS)); }
@@ -471,14 +471,12 @@ public class FeedbackRegulator extends Region {
         text.setLayoutX((size - text.getLayoutBounds().getWidth()) * 0.5);
     }
 
-    private void drawBar(final GraphicsContext CTX, final double VALUE) {
-        CTX.clearRect(0, 0, size, size);
-        double barXY          = size * 0.04;
-        double barWH          = size * 0.92;
-        double barAngleExtend = (VALUE - minValue.get()) * angleStep;
-        CTX.save();
-        CTX.strokeArc(barXY, barXY, barWH, barWH, BAR_START_ANGLE, -barAngleExtend, ArcType.OPEN);
-        CTX.restore();
+    private void drawBar(final double VALUE) {
+        barArc.setLength(-(VALUE - minValue.get()) * angleStep);
+    }
+
+    private void drawOverlayBar(final double VALUE) {
+        overlayBarArc.setLength(-(VALUE - minValue.get()) * angleStep);
     }
 
     private void resize() {
@@ -491,19 +489,23 @@ public class FeedbackRegulator extends Region {
             pane.setPrefSize(size, size);
             pane.relocate((getWidth() - size) * 0.5, (getHeight() - size) * 0.5);
 
-            barCanvas.setCache(false);
-            barCanvas.setWidth(size);
-            barCanvas.setHeight(size);
-            barCtx.setLineWidth(size * 0.04);
-            barCtx.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, size, size)));
-            drawBar(barCtx, maxValue.get());
-            barCanvas.setCache(true);
-            barCanvas.setCacheHint(CacheHint.SPEED);
+            barArc.setCache(false);
+            barArc.setCenterX(size * 0.5);
+            barArc.setCenterY(size * 0.5);
+            barArc.setRadiusX(size * 0.46);
+            barArc.setRadiusY(size * 0.46);
+            barArc.setStrokeWidth(size * 0.04);
+            barArc.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, size, size)));
+            drawBar(maxValue.get());
+            barArc.setCache(true);
+            barArc.setCacheHint(CacheHint.SPEED);
 
-            barOverlayCanvas.setWidth(size);
-            barOverlayCanvas.setHeight(size);
-            barOverlayCtx.setLineWidth(size * 0.03);
-            drawBar(barOverlayCtx, currentValue.get());
+            overlayBarArc.setCenterX(size * 0.5);
+            overlayBarArc.setCenterY(size * 0.5);
+            overlayBarArc.setRadiusX(size * 0.46);
+            overlayBarArc.setRadiusY(size * 0.46);
+            overlayBarArc.setStrokeWidth(size * 0.03);
+            drawOverlayBar(currentValue.get());
 
             double shadowRadius = clamp(1.0, 2.0, size * 0.004);
             dropShadow.setRadius(shadowRadius);
