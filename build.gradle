@@ -1,12 +1,31 @@
-group 'eu.hansolo.fx'
-version '1.0'
+import java.text.SimpleDateFormat
 
-apply plugin: 'java'
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:3.0.0'
+    }
+}
 
-sourceCompatibility = 1.8
+// Regulators main build file
+plugins {
+    id 'idea'
+    id 'java'
+    id 'maven-publish'
+    id 'net.nemerosa.versioning' version '1.6.0'
+    id 'com.jfrog.bintray' version '1.6'
+}
 
-repositories {
-    jcenter()
+apply plugin: 'biz.aQute.bnd.builder'
+
+description = 'Regulators is a JavaFX 8 library containing regulator controls'
+
+Date buildTimeAndDate = new Date()
+ext {
+    buildDate = new SimpleDateFormat('yyyy-MM-dd').format(buildTimeAndDate)
+    buildTime = new SimpleDateFormat('HH:mm:ss.SSSZ').format(buildTimeAndDate)
 }
 
 dependencies {
@@ -16,4 +35,113 @@ dependencies {
     compile 'org.kordamp.ikonli:ikonli-materialdesign-pack:1.8.0'
     compile 'org.kordamp.ikonli:ikonli-fontawesome-pack:1.8.0'
     compile 'org.kordamp.ikonli:ikonli-weathericons-pack:1.8.0'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Built-By'              : System.properties['user.name'],
+                'Created-By'            : System.properties['java.version'] + " (" + System.properties['java.vendor'] + " " + System.properties['java.vm.version'] + ")",
+                'Build-Date'            : project.buildDate,
+                'Build-Time'            : project.buildTime,
+                'Build-Revision'        : versioning.info.commit,
+                'Specification-Title'   : project.name,
+                'Specification-Version' : project.version,
+                'Implementation-Title'  : project.name,
+                'Implementation-Version': project.version,
+                'Bundle-Name'           : project.name,
+                'Bundle-License'        : 'https://www.apache.org/licenses/LICENSE-2.0;description=Apache License Version 2.0;link=https://www.eclipse.org/legal/eplfaq.php',
+                'Bundle-Description'    : description,
+                'Bundle-SymbolicName'   : 'eu.hansolo.fx.regulators',
+                'Export-Package'        : 'eu.hansolo.fx.regulators',
+                'Class-Path'            : 'ikonli-core-1.8.0.jar ' +
+                                          'ikonli-javafx-1.8.0.jar' +
+                                          'ikonli-fontawesome-pack-1.8.0.jar '+
+                                          'ikonli-material-pack-1.8.0.jar' +
+                                          'ikonli-materialdesign-pack-1.8.0.jar' +
+                                          'ikonli-weathericons-pack.1.8.0.jar'
+        )
+    }
+}
+
+repositories {
+    jcenter()
+}
+
+// create one jar for the javadoc
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+// create one jar for the source files
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives jar
+    archives javadocJar
+    archives sourcesJar
+}
+
+def pomConfig = {
+    name 'Regulators'
+    url 'https://github.com/HanSolo/regulators/wiki'
+    inceptionYear '2016'
+    licenses {
+        license([:]) {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+        }
+    }
+    scm {
+        url 'scm:git@github.com:HanSolo/regulators.git'
+        connection 'scm:git@github.com:HanSolo/regulators.git'
+        developerConnection 'scm:git@github.com:HanSolo/regulators.git'
+    }
+    developers {
+        developer {
+            id 'HanSolo'
+            name 'Gerrit Grunwald'
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenCustom(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom.withXml {
+                asNode().children().last() + pomConfig
+                asNode().appendNode('description', description)
+            }
+        }
+    }
+}
+
+if (!project.hasProperty('bintrayUsername')) ext.bintrayUsername = ''
+if (!project.hasProperty('bintrayApiKey')) ext.bintrayApiKey = ''
+
+bintray {
+    user = project.bintrayUsername
+    key = project.bintrayApiKey
+    publications = ['mavenCustom']
+    pkg {
+        repo                  = 'Regulators'
+        userOrg               = 'hansolo'
+        name                  = project.name
+        desc                  = description
+        licenses              = ['Apache-2.0']
+        labels                = ['javafx']
+        websiteUrl            = 'https://github.com/HanSolo/regulators/wiki'
+        issueTrackerUrl       = 'https://github.com/HanSolo/regulators/issues'
+        vcsUrl                = 'git@github.com:HanSolo/regulators.git'
+        publicDownloadNumbers = true
+    }
 }
