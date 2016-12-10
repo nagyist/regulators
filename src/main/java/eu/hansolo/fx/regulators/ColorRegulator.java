@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -66,7 +67,7 @@ public class ColorRegulator extends Region {
     private static final double         MAXIMUM_WIDTH    = 1024;
     private static final double         MAXIMUM_HEIGHT   = 1024;
     private static final double         MIN_VALUE        = 0.0;
-    private static final double         MAX_VALUE        = 1.0;
+    private static final double         MAX_VALUE        = 100.0;
     private              double         BAR_START_ANGLE  = -130;
     private              double         ANGLE_RANGE      = 280;
     private final        RegulatorEvent TARGET_SET_EVENT = new RegulatorEvent(RegulatorEvent.TARGET_SET);
@@ -110,6 +111,7 @@ public class ColorRegulator extends Region {
             @Override protected void invalidated() {
                 super.set(null == get() ? Color.BLACK : get());
                 currentColorCircle.setFill(get());
+                indicatorRotate.setAngle(((gradientLookup.getValueFrom(get()) * 100.0) - MIN_VALUE) * angleStep - ANGLE_RANGE * 0.5);
             }
             @Override public Object getBean() { return ColorRegulator.this; }
             @Override public String getName() { return "targetColor"; }
@@ -341,7 +343,7 @@ public class ColorRegulator extends Region {
     // ******************** Resizing ******************************************
     private void rotate(final double VALUE) {
         indicatorRotate.setAngle((VALUE - MIN_VALUE) * angleStep - ANGLE_RANGE * 0.5);
-        targetColor.set(gradientLookup.getColorAt(VALUE));
+        targetColor.set(gradientLookup.getColorAt(VALUE / 100.0));
         currentColorCircle.setFill(targetColor.get());
     }
 
