@@ -282,6 +282,7 @@ public class ColorRegulator extends Region {
         barArc.setStroke(barGradient.getImagePattern(new Rectangle(0, 0, PREFERRED_WIDTH, PREFERRED_HEIGHT)));
     }
 
+    public boolean isOn() { return currentColorCircle.isVisible(); }
     public void setOn(final boolean IS_ON) { currentColorCircle.setVisible(IS_ON); }
 
     private List<Stop> reorderStops(final Stop... STOPS) { return reorderStops(Arrays.asList(STOPS)); }
