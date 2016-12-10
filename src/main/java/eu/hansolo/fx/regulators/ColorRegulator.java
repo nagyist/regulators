@@ -16,6 +16,8 @@
 
 package eu.hansolo.fx.regulators;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.BooleanPropertyBase;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.DoublePropertyBase;
 import javafx.beans.property.ObjectProperty;
@@ -92,6 +94,7 @@ public class ColorRegulator extends Region {
     private ObjectProperty<Color>       targetColor;
     private ObjectProperty<Color>       textColor;
     private ObjectProperty<Color>       color;
+    private BooleanProperty             on;
     private double                      angleStep;
     private ConicalGradient             barGradient;
     private GradientLookup              gradientLookup;
@@ -131,6 +134,11 @@ public class ColorRegulator extends Region {
             }
             @Override public Object getBean() { return ColorRegulator.this; }
             @Override public String getName() { return "color"; }
+        };
+        on           = new BooleanPropertyBase(true) {
+            @Override protected void invalidated() { currentColorCircle.setVisible(get()); }
+            @Override public Object getBean() { return ColorRegulator.this; }
+            @Override public String getName() { return "on"; }
         };
         angleStep    = ANGLE_RANGE / (MAX_VALUE - MIN_VALUE);
 
@@ -284,6 +292,7 @@ public class ColorRegulator extends Region {
 
     public boolean isOn() { return currentColorCircle.isVisible(); }
     public void setOn(final boolean IS_ON) { currentColorCircle.setVisible(IS_ON); }
+    public BooleanProperty onProperty() { return on; }
 
     private List<Stop> reorderStops(final Stop... STOPS) { return reorderStops(Arrays.asList(STOPS)); }
     private List<Stop> reorderStops(final List<Stop> STOPS) {
@@ -355,12 +364,12 @@ public class ColorRegulator extends Region {
     private void buttonOnPressed(final boolean PRESSED) {
         buttonOn.setEffect(PRESSED ? innerShadow : dropShadow);
         textOn.relocate(buttonOn.getLayoutBounds().getMinX() + (buttonOn.getLayoutBounds().getWidth() - textOn.getLayoutBounds().getWidth()) * 0.5, PRESSED ? size * 0.913 : size * 0.91);
-        currentColorCircle.setVisible(true);
+        setOn(true);
     }
     private void buttonOffPressed(final boolean PRESSED) {
         buttonOff.setEffect(PRESSED ? innerShadow : dropShadow);
         textOff.relocate(buttonOff.getLayoutBounds().getMinX() + (buttonOff.getLayoutBounds().getWidth() - textOff.getLayoutBounds().getWidth()) * 0.5, PRESSED ? size * 0.913 : size * 0.91);
-        currentColorCircle.setVisible(false);
+        setOn(false);
     }
 
     private void resize() {
