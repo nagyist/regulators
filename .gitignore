@@ -31,3 +31,4 @@ hs_err_pid*
 /build/tmp
 /build/publications
 /build/docs
+/build/classes/main/eu/hansolo/fx/regulators/Main$1.class
