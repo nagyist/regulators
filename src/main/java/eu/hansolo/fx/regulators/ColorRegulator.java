@@ -104,6 +104,7 @@ public class ColorRegulator extends Region {
     public ColorRegulator() {
         scaleFactor  = 1.0;
         targetValue  = new DoublePropertyBase(0) {
+            @Override protected void invalidated() { setOn(Double.compare(get(), 0) != 0); }
             @Override public void set(final double VALUE) {
                 super.set(clamp(MIN_VALUE, MAX_VALUE, VALUE));
             }
