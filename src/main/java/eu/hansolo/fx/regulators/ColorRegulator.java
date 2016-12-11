@@ -27,6 +27,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.VPos;
 import javafx.scene.CacheHint;
+import javafx.scene.Group;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.InnerShadow;
@@ -52,7 +53,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -62,6 +62,7 @@ import java.util.TreeSet;
  * Created by hansolo on 03.03.16.
  */
 public class ColorRegulator extends Region {
+    private static final Color          DEFAULT_COLOR    = Color.rgb(66,71,79);
     private static final double         PREFERRED_WIDTH  = 250;
     private static final double         PREFERRED_HEIGHT = 250;
     private static final double         MINIMUM_WIDTH    = 50;
@@ -88,12 +89,17 @@ public class ColorRegulator extends Region {
     private DropShadow                  dropShadow;
     private InnerShadow                 highlight;
     private InnerShadow                 innerShadow;
+    private DropShadow                  indicatorGlow;
+    private InnerShadow                 indicatorInnerShadow;
+    private InnerShadow                 indicatorHighlight;
     private Rotate                      indicatorRotate;
     private double                      scaleFactor;
     private DoubleProperty              targetValue;
     private ObjectProperty<Color>       targetColor;
     private ObjectProperty<Color>       textColor;
     private ObjectProperty<Color>       color;
+    private ObjectProperty<Color>       indicatorColor;
+    private BooleanProperty             selected;
     private BooleanProperty             on;
     private double                      angleStep;
     private ConicalGradient             barGradient;
@@ -128,13 +134,33 @@ public class ColorRegulator extends Region {
             @Override public Object getBean() { return ColorRegulator.this; }
             @Override public String getName() { return "textColor"; }
         };
-        color        = new ObjectPropertyBase<Color>(Color.rgb(66,71,79)) {
+        color        = new ObjectPropertyBase<Color>(DEFAULT_COLOR) {
             @Override protected void invalidated() {
-                super.set(null == get() ? Color.rgb(66,71,79) : get());
+                super.set(null == get() ? DEFAULT_COLOR : get());
                 redraw();
             }
             @Override public Object getBean() { return ColorRegulator.this; }
             @Override public String getName() { return "color"; }
+        };
+        indicatorColor = new ObjectPropertyBase<Color>(Color.WHITE) {
+            @Override protected void invalidated() { indicatorGlow.setColor(get()); }
+            @Override public Object getBean() { return ColorRegulator.this; }
+            @Override public String getName() { return "indicatorColor"; }
+        };
+        selected       = new BooleanPropertyBase(false) {
+            @Override protected void invalidated() {
+                if (get()) {
+                    indicator.setFill(getIndicatorColor());
+                    indicator.setStroke(getIndicatorColor().darker().darker());
+                    indicator.setEffect(indicatorGlow);
+                } else {
+                    indicator.setFill(getColor().darker());
+                    indicator.setStroke(getColor().darker().darker());
+                    indicator.setEffect(null);
+                }
+            }
+            @Override public Object getBean() { return ColorRegulator.this; }
+            @Override public String getName() { return "selected"; }
         };
         on           = new BooleanPropertyBase(true) {
             @Override protected void invalidated() { currentColorCircle.setVisible(get()); }
@@ -230,11 +256,19 @@ public class ColorRegulator extends Region {
 
         indicatorRotate = new Rotate(-ANGLE_RANGE *  0.5, center, center);
 
+        indicatorGlow        = new DropShadow(BlurType.TWO_PASS_BOX, getIndicatorColor(), PREFERRED_WIDTH * 0.02, 0.0, 0, 0);
+        indicatorInnerShadow = new InnerShadow(BlurType.TWO_PASS_BOX, Color.rgb(0, 0, 0, 0.5), PREFERRED_WIDTH * 0.008, 0.0, 0, PREFERRED_WIDTH * 0.008);
+        indicatorHighlight   = new InnerShadow(BlurType.TWO_PASS_BOX, Color.rgb(255, 255, 255, 0.35), PREFERRED_WIDTH * 0.008, 0.0, 0, -PREFERRED_WIDTH * 0.008);
+        indicatorHighlight.setInput(indicatorInnerShadow);
+
         indicator = new Circle();
         indicator.setFill(color.get().darker());
         indicator.setStroke(color.get().darker().darker());
         indicator.setMouseTransparent(true);
         indicator.getTransforms().add(indicatorRotate);
+
+        Group indicatorGroup = new Group(indicator);
+        indicatorGroup.setEffect(indicatorHighlight);
 
         innerRing = Shape.subtract(new Circle(center, center, PREFERRED_WIDTH * 0.24),
                                    new Circle(center, center, PREFERRED_WIDTH * 0.2));
@@ -243,7 +277,7 @@ public class ColorRegulator extends Region {
         currentColorCircle = new Circle();
         currentColorCircle.setFill(targetColor.get());
 
-        pane = new Pane(barArc, ring, mainCircle, currentColorCircle, innerRing, indicator, buttonOn, textOn, buttonOff, textOff);
+        pane = new Pane(barArc, ring, mainCircle, currentColorCircle, innerRing, indicatorGroup, buttonOn, textOn, buttonOff, textOff);
         pane.setPrefSize(PREFERRED_HEIGHT, PREFERRED_HEIGHT);
         pane.setBackground(new Background(new BackgroundFill(color.get().darker(), new CornerRadii(1024), Insets.EMPTY)));
         pane.setEffect(highlight);
@@ -282,6 +316,14 @@ public class ColorRegulator extends Region {
     public Color getColor() { return color.get(); }
     public void setColor(final Color COLOR) { color.set(COLOR); }
     public ObjectProperty<Color> colorProperty() { return color; }
+
+    public Color getIndicatorColor() { return indicatorColor.get(); }
+    public void setIndicatorColor(final Color COLOR) { indicatorColor.set(COLOR); }
+    public ObjectProperty<Color> indicatorColorProperty() { return indicatorColor; }
+
+    public boolean isSelected() { return selected.get(); }
+    public void setSelected(final boolean SELECTED) { selected.set(SELECTED); }
+    public BooleanProperty selectedProperty() { return selected; }
 
     public List<Stop> getGradientStops() { return barGradient.getStops(); }
     public void setGradientStops(final Stop... STOPS) { setGradientStops(Arrays.asList(STOPS)); }
@@ -437,6 +479,12 @@ public class ColorRegulator extends Region {
             textOff.setFont(Fonts.robotoLight(fontSize));
             textOff.relocate(buttonOff.getLayoutBounds().getMinX() + (buttonOff.getLayoutBounds().getWidth() - textOff.getLayoutBounds().getWidth()) * 0.5, size * 0.91);
 
+            indicatorGlow.setRadius(size * 0.02);
+            indicatorInnerShadow.setRadius(size * 0.008);
+            indicatorInnerShadow.setOffsetY(size * 0.006);
+            indicatorHighlight.setRadius(size * 0.008);
+            indicatorHighlight.setOffsetY(-size * 0.004);
+
             indicator.setRadius(size * 0.032);
             indicator.setCenterX(center);
             indicator.setCenterY(size * 0.148);
@@ -465,8 +513,8 @@ public class ColorRegulator extends Region {
         buttonOff.setStroke(color.get());
         textOn.setFill(textColor.get());
         textOff.setFill(textColor.get());
-        indicator.setFill(color.get().darker());
-        indicator.setStroke(color.get().darker().darker());
+        indicator.setFill(isSelected() ? indicatorColor.get() : color.get().darker());
+        indicator.setStroke(isSelected() ? indicatorColor.get().darker().darker() : color.get().darker().darker());
         rotate(targetValue.get());
     }
 
