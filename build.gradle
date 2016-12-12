@@ -29,12 +29,12 @@ ext {
 }
 
 dependencies {
-    compile 'org.kordamp.ikonli:ikonli-core:1.8.0'
-    compile 'org.kordamp.ikonli:ikonli-javafx:1.8.0'
-    compile 'org.kordamp.ikonli:ikonli-material-pack:1.8.0'
-    compile 'org.kordamp.ikonli:ikonli-materialdesign-pack:1.8.0'
-    compile 'org.kordamp.ikonli:ikonli-fontawesome-pack:1.8.0'
-    compile 'org.kordamp.ikonli:ikonli-weathericons-pack:1.8.0'
+    classpath 'org.kordamp.ikonli:ikonli-core:1.8.0'
+    classpath 'org.kordamp.ikonli:ikonli-javafx:1.8.0'
+    classpath 'org.kordamp.ikonli:ikonli-material-pack:1.8.0'
+    classpath 'org.kordamp.ikonli:ikonli-materialdesign-pack:1.8.0'
+    classpath 'org.kordamp.ikonli:ikonli-fontawesome-pack:1.8.0'
+    classpath 'org.kordamp.ikonli:ikonli-weathericons-pack:1.8.0'
 }
 
 jar {
