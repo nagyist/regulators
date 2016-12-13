@@ -91,7 +91,7 @@ def pomConfig = {
     url 'https://github.com/HanSolo/regulators/wiki'
     inceptionYear '2016'
     licenses {
-        license([:]) {
+        license {
             name 'The Apache Software License, Version 2.0'
             url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
             distribution 'repo'
@@ -118,6 +118,18 @@ publishing {
             artifact javadocJar
 
             pom.withXml {
+                // all dependencies should use the default scope (compile) but
+                // Gradle insists in using runtime as default
+                asNode().dependencies.dependency.each { dep ->
+                    if (dep.scope.text() == 'runtime') {
+                        dep.remove(dep.scope)
+                    }
+                }
+                asNode().appendNode('repositories')
+                        .appendNode('repository')
+                            .appendNode('id', 'bintray').parent()
+                            .appendNode('name', 'bintray').parent()
+                            .appendNode('url', 'htp://jcenter.bintray.com').parent()
                 asNode().children().last() + pomConfig
                 asNode().appendNode('description', description)
             }
