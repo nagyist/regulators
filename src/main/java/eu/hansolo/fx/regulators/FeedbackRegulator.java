@@ -70,7 +70,7 @@ import java.util.TreeSet;
 /**
  * Created by hansolo on 01.03.16.
  */
-public class FeedbackRegulator extends Region {
+public class FeedbackRegulator extends Region implements RegulatorControl {
     private static final Color          DEFAULT_COLOR    = Color.rgb(66,71,79);
     private static final double         PREFERRED_WIDTH  = 250;
     private static final double         PREFERRED_HEIGHT = 250;
@@ -371,9 +371,9 @@ public class FeedbackRegulator extends Region {
     public void setMaxValue(final double VALUE) { maxValue.set(VALUE); }
     public DoubleProperty maxValueProperty() { return maxValue; }
 
-    public double getTargetValue() { return targetValue.get(); }
-    public void setTargetValue(final double VALUE) { targetValue.set(VALUE); }
-    public DoubleProperty targetValueProperty() { return targetValue; }
+    @Override public double getTargetValue() { return targetValue.get(); }
+    @Override public void setTargetValue(final double VALUE) { targetValue.set(VALUE); }
+    @Override public DoubleProperty targetValueProperty() { return targetValue; }
 
     public double getCurrentValue() { return currentValue.get(); }
     public void setCurrentValue(final double VALUE) { currentValue.set(VALUE); }
@@ -395,21 +395,21 @@ public class FeedbackRegulator extends Region {
     public void setIconColor(final Color COLOR) { iconColor.set(COLOR); }
     public ObjectProperty<Color> iconColorProperty() { return iconColor; }
 
-    public Color getTextColor() { return textColor.get(); }
-    public void setTextColor(final Color COLOR) { textColor.set(COLOR); }
-    public ObjectProperty<Color> textColorProperty() { return textColor; }
+    @Override public Color getTextColor() { return textColor.get(); }
+    @Override public void setTextColor(final Color COLOR) { textColor.set(COLOR); }
+    @Override public ObjectProperty<Color> textColorProperty() { return textColor; }
 
-    public Color getColor() { return color.get(); }
-    public void setColor(final Color COLOR) { color.set(COLOR); }
-    public ObjectProperty<Color> colorProperty() { return color; }
+    @Override public Color getColor() { return color.get(); }
+    @Override public void setColor(final Color COLOR) { color.set(COLOR); }
+    @Override public ObjectProperty<Color> colorProperty() { return color; }
 
-    public Color getIndicatorColor() { return indicatorColor.get(); }
-    public void setIndicatorColor(final Color COLOR) { indicatorColor.set(COLOR); }
-    public ObjectProperty<Color> indicatorColorProperty() { return indicatorColor; }
+    @Override public Color getIndicatorColor() { return indicatorColor.get(); }
+    @Override public void setIndicatorColor(final Color COLOR) { indicatorColor.set(COLOR); }
+    @Override public ObjectProperty<Color> indicatorColorProperty() { return indicatorColor; }
 
-    public boolean isSelected() { return selected.get(); }
-    public void setSelected(final boolean SELECTED) { selected.set(SELECTED); }
-    public BooleanProperty selectedProperty() { return selected; }
+    @Override public boolean isSelected() { return selected.get(); }
+    @Override public void setSelected(final boolean SELECTED) { selected.set(SELECTED); }
+    @Override public BooleanProperty selectedProperty() { return selected; }
 
     public List<Stop> getGradientStops() { return barGradient.getStops(); }
     public void setGradientStops(final Stop... STOPS) { setGradientStops(Arrays.asList(STOPS)); }

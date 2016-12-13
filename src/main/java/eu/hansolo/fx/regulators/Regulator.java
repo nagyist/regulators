@@ -58,7 +58,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import java.util.Locale;
 
 
-public class Regulator extends Region {
+public class Regulator extends Region implements RegulatorControl {
     private static final Color          DEFAULT_COLOR    = Color.rgb(66,71,79);
     private static final double         PREFERRED_WIDTH  = 250;
     private static final double         PREFERRED_HEIGHT = 250;
@@ -311,9 +311,9 @@ public class Regulator extends Region {
     public void setMaxValue(final double VALUE) { maxValue.set(VALUE); }
     public DoubleProperty maxValueProperty() { return maxValue; }
 
-    public double getTargetValue() { return targetValue.get(); }
-    public void setTargetValue(final double VALUE) { targetValue.set(VALUE); }
-    public DoubleProperty targetValueProperty() { return targetValue; }
+    @Override public double getTargetValue() { return targetValue.get(); }
+    @Override public void setTargetValue(final double VALUE) { targetValue.set(VALUE); }
+    @Override public DoubleProperty targetValueProperty() { return targetValue; }
 
     public int getDecimals() { return decimals.get(); }
     public void setDecimals(final int VALUE) { decimals.set(VALUE); }
@@ -331,25 +331,25 @@ public class Regulator extends Region {
     public void setIconColor(final Color COLOR) { iconColor.set(COLOR); }
     public ObjectProperty<Color> iconColorProperty() { return iconColor; }
 
-    public Color getTextColor() { return textColor.get(); }
-    public void setTextColor(final Color COLOR) { textColor.set(COLOR); }
-    public ObjectProperty<Color> textColorProperty() { return textColor; }
+    @Override public Color getTextColor() { return textColor.get(); }
+    @Override public void setTextColor(final Color COLOR) { textColor.set(COLOR); }
+    @Override public ObjectProperty<Color> textColorProperty() { return textColor; }
 
     public Color getBarColor() { return barColor.get(); }
     public void setBarColor(final Color COLOR) { barColor.set(COLOR); }
     public ObjectProperty<Color> barColorProperty() { return barColor; }
 
-    public Color getColor() { return color.get(); }
-    public void setColor(final Color COLOR) { color.set(COLOR); }
-    public ObjectProperty<Color> colorProperty() { return color; }
+    @Override public Color getColor() { return color.get(); }
+    @Override public void setColor(final Color COLOR) { color.set(COLOR); }
+    @Override public ObjectProperty<Color> colorProperty() { return color; }
 
-    public Color getIndicatorColor() { return indicatorColor.get(); }
-    public void setIndicatorColor(final Color COLOR) { indicatorColor.set(COLOR); }
-    public ObjectProperty<Color> indicatorColorProperty() { return indicatorColor; }
+    @Override public Color getIndicatorColor() { return indicatorColor.get(); }
+    @Override public void setIndicatorColor(final Color COLOR) { indicatorColor.set(COLOR); }
+    @Override public ObjectProperty<Color> indicatorColorProperty() { return indicatorColor; }
 
-    public boolean isSelected() { return selected.get(); }
-    public void setSelected(final boolean SELECTED) { selected.set(SELECTED); }
-    public BooleanProperty selectedProperty() { return selected; }
+    @Override public boolean isSelected() { return selected.get(); }
+    @Override public void setSelected(final boolean SELECTED) { selected.set(SELECTED); }
+    @Override public BooleanProperty selectedProperty() { return selected; }
 
     public void setSymbolPath(final double SCALE_X, final double SCALE_Y, final String PATH) {
         if (PATH.isEmpty()) {
