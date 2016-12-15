@@ -272,7 +272,7 @@ public class ColorRegulator extends Region implements RegulatorControl {
 
         innerRing = Shape.subtract(new Circle(center, center, PREFERRED_WIDTH * 0.24),
                                    new Circle(center, center, PREFERRED_WIDTH * 0.2));
-        innerRing.setFill(Color.rgb(66,71,79));
+        innerRing.setFill(color.get());
 
         currentColorCircle = new Circle();
         currentColorCircle.setFill(targetColor.get());
@@ -509,6 +509,7 @@ public class ColorRegulator extends Region implements RegulatorControl {
         pane.setBackground(new Background(new BackgroundFill(color.get().darker(), new CornerRadii(1024), Insets.EMPTY)));
         mainCircle.setFill(color.get().darker().darker());
         ring.setFill(color.get());
+        innerRing.setFill(color.get());
         buttonOn.setStroke(color.get());
         buttonOff.setStroke(color.get());
         textOn.setFill(textColor.get());
