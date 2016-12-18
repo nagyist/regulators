@@ -94,6 +94,7 @@ public class ColorRegulator extends Region implements RegulatorControl {
     private InnerShadow                 indicatorHighlight;
     private Rotate                      indicatorRotate;
     private double                      scaleFactor;
+    private Color                       baseColor;
     private DoubleProperty              targetValue;
     private ObjectProperty<Color>       targetColor;
     private ObjectProperty<Color>       textColor;
@@ -101,6 +102,7 @@ public class ColorRegulator extends Region implements RegulatorControl {
     private ObjectProperty<Color>       indicatorColor;
     private BooleanProperty             selected;
     private BooleanProperty             on;
+    private DoubleProperty              brightness;
     private double                      angleStep;
     private ConicalGradient             barGradient;
     private GradientLookup              gradientLookup;
@@ -108,8 +110,9 @@ public class ColorRegulator extends Region implements RegulatorControl {
 
     // ******************** Constructors **************************************
     public ColorRegulator() {
-        scaleFactor  = 1.0;
-        targetValue  = new DoublePropertyBase(0) {
+        scaleFactor    = 1.0;
+        baseColor      = Color.YELLOW;
+        targetValue    = new DoublePropertyBase(0) {
             @Override protected void invalidated() { setOn(Double.compare(get(), 0) != 0); }
             @Override public void set(final double VALUE) {
                 super.set(clamp(MIN_VALUE, MAX_VALUE, VALUE));
@@ -117,16 +120,16 @@ public class ColorRegulator extends Region implements RegulatorControl {
             @Override public Object getBean() { return ColorRegulator.this; }
             @Override public String getName() { return "targetValue"; }
         };
-        targetColor  = new ObjectPropertyBase<Color>(Color.YELLOW) {
+        targetColor    = new ObjectPropertyBase<Color>(baseColor) {
             @Override protected void invalidated() {
                 super.set(null == get() ? Color.BLACK : get());
                 currentColorCircle.setFill(get());
-                indicatorRotate.setAngle(((gradientLookup.getValueFrom(get()) * 100.0) - MIN_VALUE) * angleStep - ANGLE_RANGE * 0.5);
+                indicatorRotate.setAngle(((gradientLookup.getValueFrom(baseColor) * 100.0) - MIN_VALUE) * angleStep - ANGLE_RANGE * 0.5);
             }
             @Override public Object getBean() { return ColorRegulator.this; }
             @Override public String getName() { return "targetColor"; }
         };
-        textColor    = new ObjectPropertyBase<Color>(Color.WHITE) {
+        textColor      = new ObjectPropertyBase<Color>(Color.WHITE) {
             @Override protected void invalidated() {
                 super.set(null == get() ? Color.WHITE:  get());
                 redraw();
@@ -134,7 +137,7 @@ public class ColorRegulator extends Region implements RegulatorControl {
             @Override public Object getBean() { return ColorRegulator.this; }
             @Override public String getName() { return "textColor"; }
         };
-        color        = new ObjectPropertyBase<Color>(DEFAULT_COLOR) {
+        color          = new ObjectPropertyBase<Color>(DEFAULT_COLOR) {
             @Override protected void invalidated() {
                 super.set(null == get() ? DEFAULT_COLOR : get());
                 redraw();
@@ -162,12 +165,20 @@ public class ColorRegulator extends Region implements RegulatorControl {
             @Override public Object getBean() { return ColorRegulator.this; }
             @Override public String getName() { return "selected"; }
         };
-        on           = new BooleanPropertyBase(true) {
+        on             = new BooleanPropertyBase(false) {
             @Override protected void invalidated() { currentColorCircle.setVisible(get()); }
             @Override public Object getBean() { return ColorRegulator.this; }
             @Override public String getName() { return "on"; }
         };
-        angleStep    = ANGLE_RANGE / (MAX_VALUE - MIN_VALUE);
+        brightness     = new DoublePropertyBase(1.0) {
+            @Override protected void invalidated() {
+                set(clamp(0.0, 1.0, get()));
+                targetColor.set(baseColor.deriveColor(0, 1, get(), 1));
+            }
+            @Override public Object getBean() { return ColorRegulator.this; }
+            @Override public String getName() { return "brightness"; }
+        };
+        angleStep      = ANGLE_RANGE / (MAX_VALUE - MIN_VALUE);
 
         init();
         initGraphics();
@@ -337,6 +348,10 @@ public class ColorRegulator extends Region implements RegulatorControl {
     public void setOn(final boolean IS_ON) { on.set(IS_ON); }
     public BooleanProperty onProperty() { return on; }
 
+    public double getBrightness() { return brightness.get(); }
+    public void setBrightness(final double BRIGHTNESS) { brightness.set(BRIGHTNESS); }
+    public DoubleProperty brightnessProperty() { return brightness; }
+
     private List<Stop> reorderStops(final Stop... STOPS) { return reorderStops(Arrays.asList(STOPS)); }
     private List<Stop> reorderStops(final List<Stop> STOPS) {
         /*
@@ -396,7 +411,9 @@ public class ColorRegulator extends Region implements RegulatorControl {
     // ******************** Resizing ******************************************
     private void rotate(final double VALUE) {
         indicatorRotate.setAngle((VALUE - MIN_VALUE) * angleStep - ANGLE_RANGE * 0.5);
-        targetColor.set(gradientLookup.getColorAt(VALUE / 100.0));
+        baseColor = gradientLookup.getColorAt(VALUE / 100.0);
+        baseColor.deriveColor(0, 1, getBrightness(), 1);
+        targetColor.set(baseColor.deriveColor(0, 1, getBrightness(), 1));
         currentColorCircle.setFill(targetColor.get());
     }
 
