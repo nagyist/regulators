@@ -95,6 +95,7 @@ public class Main extends Application {
                                               .prefSize(400, 400)
                                               //.textColor(Color.YELLOW)
                                               //.color(Color.PURPLE)
+                                              .brightness(0.5)
                                               .onButtonOnPressed(e -> System.out.println("Light ON"))
                                               .onButtonOffPressed(e -> System.out.println("Light OFF"))
                                               .build();
