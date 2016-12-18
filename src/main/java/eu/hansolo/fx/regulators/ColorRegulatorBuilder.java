@@ -16,10 +16,12 @@
 
 package eu.hansolo.fx.regulators;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -69,6 +71,16 @@ public class ColorRegulatorBuilder<B extends ColorRegulatorBuilder<B>> {
 
     public final B color(final Color COLOR) {
         properties.put("color", new SimpleObjectProperty<>(COLOR));
+        return (B)this;
+    }
+
+    public final B on(final boolean ON) {
+        properties.put("on", new SimpleBooleanProperty(ON));
+        return (B)this;
+    }
+
+    public final B brightness(final double BRIGHTNESS) {
+        properties.put("brightness", new SimpleDoubleProperty(BRIGHTNESS));
         return (B)this;
     }
 
@@ -233,6 +245,10 @@ public class ColorRegulatorBuilder<B extends ColorRegulatorBuilder<B>> {
                 CONTROL.setTextColor(((ObjectProperty<Color>) properties.get(key)).get());
             } else if ("color".equals(key)) {
                 CONTROL.setColor(((ObjectProperty<Color>) properties.get(key)).get());
+            } else if ("on".equals(key)) {
+                CONTROL.setOn(((BooleanProperty) properties.get(key)).get());
+            } else if ("brightness".equals(key)) {
+                CONTROL.setBrightness(((DoubleProperty) properties.get(key)).get());
             } else if ("onTargetSet".equals(key)) {
                 CONTROL.setOnTargetSet(((ObjectProperty<EventHandler>) properties.get(key)).get());
             } else if ("onButtonOnPressed".equals(key)) {
