@@ -287,6 +287,7 @@ public class ColorRegulator extends Region implements RegulatorControl {
 
         currentColorCircle = new Circle();
         currentColorCircle.setFill(targetColor.get());
+        currentColorCircle.setVisible(isOn());
 
         pane = new Pane(barArc, ring, mainCircle, currentColorCircle, innerRing, indicatorGroup, buttonOn, textOn, buttonOff, textOff);
         pane.setPrefSize(PREFERRED_HEIGHT, PREFERRED_HEIGHT);
